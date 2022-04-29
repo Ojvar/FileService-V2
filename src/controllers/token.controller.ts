@@ -2,20 +2,31 @@
 // Uncomment these imports to begin using these cool features!
 
 import {config, inject} from '@loopback/core';
-import {HttpErrors, post, requestBody, response} from '@loopback/rest';
+import {
+  del,
+  HttpErrors,
+  param,
+  patch,
+  post,
+  requestBody,
+  response,
+} from '@loopback/rest';
+import debugFactory from 'debug';
+import {unlink} from 'fs';
+import {resolve} from 'path';
 import {v4 as uuidV4} from 'uuid';
 import {expiredAtSeconds} from '../helpers/datetime.helper';
 import {FileService} from '../keys';
 import {RequestToken} from '../models';
 import {RedisService} from '../services';
 
+const trace = debugFactory('FileService:TokenController');
+
 export class TokenController {
   constructor(
     @config() private configs: RequestConfig,
     @inject(FileService.REDIS_SERVICE) private redis: RedisService,
-  ) {
-    console.log(this.configs);
-  }
+  ) {}
 
   @post('/token')
   @response(200, {content: {'text/plain': {schema: {type: 'string'}}}})
@@ -29,7 +40,7 @@ export class TokenController {
             properties: {
               userId: {type: 'string'},
               ref: {type: 'string'},
-              files: {type: 'array', items: {type: 'string'}},
+              allowedFiles: {type: 'array', items: {type: 'string'}},
             },
           },
         },
@@ -43,7 +54,7 @@ export class TokenController {
       created_at: new Date(),
       ref: body.ref,
       user_id: body.userId,
-      files: body.files,
+      allowed_files: body.allowedFiles,
       commited: false,
     });
 
@@ -58,12 +69,44 @@ export class TokenController {
       throw new HttpErrors.InternalServerError();
     }
   }
+
+  @del('/token/{token}')
+  @response(200, {
+    description: 'Dismiss a token, and delete all uploaded files',
+  })
+  async dismiss(@param.path.string('token') token: string) {
+    /* Try to delete uploaded files */
+    const reqStr = await this.redis.client.GET(token);
+    if (!reqStr) {
+      throw new HttpErrors.UnprocessableEntity();
+    }
+
+    /* Remove from redis */
+    await this.redis.client.DEL(token);
+
+    /* Delete all files */
+    const request: RequestToken = RequestToken.toJSON(reqStr);
+    trace(request);
+
+    Object.entries(request.uploaded_files).forEach(([key, value]) => {
+      unlink(resolve(value), err => {
+        if (err) {
+          console.error(err);
+        }
+      });
+    });
+  }
+
+  @patch('/token/{token}')
+  async commit(@param.path.string('token') token: string) {
+    await this.redis.client.DEL(token);
+  }
 }
 
 export type TokenRequestBody = {
   userId: string;
   ref: string;
-  files: string[];
+  allowedFiles: string[];
 };
 
 export type RequestConfig = {

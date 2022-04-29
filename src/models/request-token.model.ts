@@ -6,14 +6,29 @@ export class RequestToken extends Model {
   @property({type: 'string', generated: false, required: true}) ref: string;
   @property({type: 'string', required: true}) user_id: string;
   @property({type: 'date', required: true}) created_at: Date;
-  @property({type: 'array', required: true}) files: string[];
+  @property({type: 'array', required: true}) allowed_files: string[];
   @property({type: 'boolean', default: false}) commited?: boolean;
+  @property({
+    type: 'object',
+    required: false,
+    default: {},
+    jsonSchema: {
+      additionalProperties: {
+        type: 'object',
+      },
+    },
+  })
+  uploaded_files: Record<string, string>;
 
   constructor(data: Partial<RequestToken>) {
     super(data);
   }
 
   public toString = (): string => JSON.stringify(this);
+
+  static toJSON(dataStr: string): RequestToken {
+    return JSON.parse(dataStr);
+  }
 }
 
 export interface RequestTokenRelations {
