@@ -16,6 +16,13 @@ declare namespace NodeJS {
     REDIS_SOCKET_HOST: string;
     REDIS_SOCKET_PORT: number;
 
-    REQUEST_EXPIRE_SECONDS: number;
+    RABBITMQ_PROTOCOL: string;
+    RABBITMQ_HOST: string;
+    RABBITMQ_PORT: string;
+    RABBITMQ_USER: string;
+    RABBITMQ_PASS: string;
+    RABBITMQ_VHOST: string;
+
+    REQUEST_EXPIRE_MILISECONDS: number;
   }
 }

@@ -3,7 +3,8 @@ import {Model, model, property} from '@loopback/repository';
 
 @model()
 export class RequestToken extends Model {
-  @property({type: 'string', generated: false, required: true}) ref: string;
+  @property({type: 'string', required: true}) key: string;
+  @property({type: 'string', required: true}) ref: string;
   @property({type: 'string', required: true}) user_id: string;
   @property({type: 'date', required: true}) created_at: Date;
   @property({type: 'array', required: true}) allowed_files: string[];

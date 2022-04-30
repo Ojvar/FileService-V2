@@ -7,6 +7,14 @@ import {
   RestExplorerComponent,
 } from '@loopback/rest-explorer';
 import {ServiceMixin} from '@loopback/service-proxy';
+import {
+  ConsumersBooter,
+  MessageHandlerErrorBehavior,
+  QueueComponent,
+  RabbitmqBindings,
+  RabbitmqComponent,
+  RabbitmqComponentConfig,
+} from 'loopback-rabbitmq';
 import path from 'path';
 import {RedisClientOptions} from 'redis';
 import {RequestConfig} from './controllers';
@@ -39,6 +47,11 @@ export class FileServiceApplication extends BootMixin(
     this.projectRoot = __dirname;
     // Customize @loopback/boot Booter Conventions here
     this.bootOptions = {
+      consumers: {
+        dirs: ['consumers'],
+        extensions: ['.consumer.js'],
+        nested: true,
+      },
       controllers: {
         // Customize ControllerBooter Conventions here
         dirs: ['controllers'],
@@ -50,12 +63,11 @@ export class FileServiceApplication extends BootMixin(
 
   configApp(options: ApplicationConfig) {
     this.onStart(async () => {
-      const service = this.getSync(FileService.REDIS_SERVICE);
-      await service.connect();
+      await this.connectToRedis();
     });
 
     this.configure<RequestConfig>(FileService.TOKEN_CONTROLLER).to({
-      requestExpireSeconds: +process.env.REQUEST_EXPIRE_SECONDS,
+      requestExpireMiliSeconds: +process.env.REQUEST_EXPIRE_MILISECONDS,
     });
 
     this.configure<RedisClientOptions>(FileService.REDIS_SERVICE).to({
@@ -69,5 +81,30 @@ export class FileServiceApplication extends BootMixin(
         host: process.env.REDIS_SOCKET_HOST ?? 'localhost',
       },
     });
+
+    this.configure<RabbitmqComponentConfig>(RabbitmqBindings.COMPONENT).to({
+      options: {
+        protocol: process.env.RABBITMQ_PROTOCOL,
+        hostname: process.env.RABBITMQ_HOST,
+        port: +(process.env.RABBITMQ_PORT ?? '5672'),
+        username: process.env.RABBITMQ_USER,
+        password: process.env.RABBITMQ_PASS,
+        vhost: process.env.RABBITMQ_VHOST,
+      },
+      producer: {idleTimeoutMillis: 10000},
+      consumer: {retries: 0, interval: 1500},
+      defaultConsumerErrorBehavior: MessageHandlerErrorBehavior.ACK,
+      prefetchCount: 1,
+      // exchanges: [AuthKeys.RmqExchanges.QENG_AUTH],
+    });
+
+    this.component(RabbitmqComponent);
+    this.booters(ConsumersBooter);
+    this.component(QueueComponent);
+  }
+
+  async connectToRedis() {
+    const service = this.getSync(FileService.REDIS_SERVICE);
+    await service.connect();
   }
 }

@@ -13,9 +13,9 @@ import {
 } from '@loopback/rest';
 import debugFactory from 'debug';
 import {unlink} from 'fs';
+import {RabbitmqBindings, RabbitmqProducer} from 'loopback-rabbitmq';
 import {resolve} from 'path';
 import {v4 as uuidV4} from 'uuid';
-import {expiredAtSeconds} from '../helpers/datetime.helper';
 import {FileService} from '../keys';
 import {RequestToken} from '../models';
 import {RedisService} from '../services';
@@ -26,6 +26,8 @@ export class TokenController {
   constructor(
     @config() private configs: RequestConfig,
     @inject(FileService.REDIS_SERVICE) private redis: RedisService,
+    @inject(RabbitmqBindings.RABBITMQ_PRODUCER)
+    private rabbitmqProducer: RabbitmqProducer,
   ) {}
 
   @post('/token')
@@ -48,9 +50,8 @@ export class TokenController {
     })
     body: TokenRequestBody,
   ): Promise<string> {
-    const key = uuidV4();
-
     const requestData: RequestToken = new RequestToken({
+      key: uuidV4(),
       created_at: new Date(),
       ref: body.ref,
       user_id: body.userId,
@@ -60,11 +61,20 @@ export class TokenController {
 
     /* Store data */
     try {
-      await this.redis.client.SET(key, requestData.toString(), {
-        EXAT: +expiredAtSeconds(this.configs.requestExpireSeconds),
+      await this.redis.client.SET(requestData.key, requestData.toString(), {
+        // EXAT: +expiredAtSeconds(this.configs.requestExpireMiliSeconds ),
       });
 
-      return key;
+      /* Publish rabbitmq message - delayed message,
+         to delete this record from redis db after a specified time */
+      this.rabbitmqProducer.publish(
+        FileService.RmqExchanges.FILE_SERVICE.name,
+        FileService.RmqQueues.FILE_REQUEST.routeKey,
+        requestData,
+        {headers: {'x-delay': this.configs.requestExpireMiliSeconds}},
+      );
+
+      return requestData.key;
     } catch (err) {
       throw new HttpErrors.InternalServerError();
     }
@@ -110,5 +120,5 @@ export type TokenRequestBody = {
 };
 
 export type RequestConfig = {
-  requestExpireSeconds: number;
+  requestExpireMiliSeconds: number;
 };
