@@ -4,7 +4,7 @@ import debugFactory from 'debug';
 import {unlink} from 'fs';
 import {UploadFileItem} from '../controllers';
 import {FileService} from '../keys';
-import {RequestToken} from '../models';
+import {EnumRequestTokenStatus, RequestToken} from '../models';
 import {RedisService} from './redis.service';
 
 const trace = debugFactory('FileService:UploadRequestHandlerService');
@@ -25,24 +25,24 @@ export class UploadRequestHandlerService {
     const token = request.header(FileService.HEADER_TOKEN);
     trace(token);
 
-    const redisData = !!token && (await this.redisService.client.GET(token));
-    trace(redisData);
+    const requestStr = !!token && (await this.redisService.client.GET(token));
+    trace(requestStr);
 
-    if (!redisData) {
+    const requestData = RequestToken.toJSON(requestStr || '{}');
+    trace(requestData);
+
+    if (requestData.status !== EnumRequestTokenStatus.NONE) {
       this.removeFiles(files);
       throw new HttpErrors.UnprocessableEntity('Invalid Token');
     }
 
-    const fileRequest: RequestToken = new RequestToken(JSON.parse(redisData));
-    trace(fileRequest);
-
-    const acceptableField = fileRequest.allowed_files.find(x => x === field);
+    const acceptableField = requestData.allowed_files.find(x => x === field);
     if (acceptableField === undefined) {
       this.removeFiles(files);
       throw new HttpErrors.NotAcceptable('Field is not addmited');
     }
 
-    return fileRequest;
+    return requestData;
   }
 
   removeFiles(files: UploadFileItem[]) {

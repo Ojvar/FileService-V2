@@ -9,16 +9,14 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import debugFactory from 'debug';
-import {unlink} from 'fs';
+// import debugFactory from 'debug';
 import {RabbitmqBindings, RabbitmqProducer} from 'loopback-rabbitmq';
-import {resolve} from 'path';
 import {v4 as uuidV4} from 'uuid';
 import {FileService} from '../keys';
-import {RequestToken} from '../models';
+import {EnumRequestTokenStatus, RequestToken} from '../models';
 import {RedisService} from '../services';
 
-const trace = debugFactory('FileService:TokenController');
+// const trace = debugFactory('FileService:TokenController');
 
 export class TokenController {
   constructor(
@@ -54,11 +52,11 @@ export class TokenController {
       ref: body.ref,
       user_id: body.userId,
       allowed_files: body.allowedFiles,
-      commited: false,
+      status: EnumRequestTokenStatus.NONE,
     });
 
-    /* Store data */
     try {
+      /* Store data into redis */
       await this.redis.client.SET(requestData.key, requestData.toString(), {
         // EXAT: +expiredAtSeconds(this.configs.requestExpireMiliSeconds ),
       });
@@ -68,7 +66,7 @@ export class TokenController {
       await this.rabbitmqProducer.publish(
         FileService.RmqExchanges.FILE_SERVICE.name,
         FileService.RmqQueues.FILE_REQUEST.routeKey,
-        requestData,
+        requestData.key,
         {headers: {'x-delay': this.configs.requestExpireMiliSeconds}},
       );
 
@@ -83,31 +81,25 @@ export class TokenController {
     description: 'Dismiss a token, and delete all uploaded files',
   })
   async dismiss(@param.header.string('file-token') token: string) {
-    /* Try to delete uploaded files */
-    const reqStr = await this.redis.client.GET(token);
-    if (!reqStr) {
-      throw new HttpErrors.UnprocessableEntity();
-    }
-
-    /* Remove from redis */
-    await this.redis.client.DEL(token);
-
-    /* Delete all files */
-    const request: RequestToken = RequestToken.toJSON(reqStr);
-    trace(request);
-
-    Object.entries(request.uploaded_files).forEach(([key, value]) => {
-      unlink(resolve(value.path), err => {
-        if (err) {
-          console.error(err);
-        }
-      });
-    });
+    await this.updateRequestData(token, EnumRequestTokenStatus.DISMISSED);
   }
 
   @patch('/token')
   async commit(@param.header.string('file-token') token: string) {
-    await this.redis.client.DEL(token);
+    await this.updateRequestData(token, EnumRequestTokenStatus.COMMITED);
+  }
+
+  async updateRequestData(token: string, statue: EnumRequestTokenStatus) {
+    /* Try to delete uploaded files */
+    const reqStr = await this.redis.client.GET(token);
+    const requestData = RequestToken.toJSON(reqStr);
+    if (requestData.status !== EnumRequestTokenStatus.NONE) {
+      throw new HttpErrors.UnprocessableEntity();
+    }
+
+    /* Update request data */
+    requestData.status = statue;
+    await this.redis.client.SET(token, requestData.toString());
   }
 }
 

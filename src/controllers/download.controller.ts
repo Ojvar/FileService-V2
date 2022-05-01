@@ -7,11 +7,11 @@ import {
   Response,
   RestBindings,
 } from '@loopback/rest';
-import debugFactory from 'debug';
+// import debugFactory from 'debug';
 import path from 'path';
 import {FileService} from '../keys';
 
-const trace = debugFactory('FileService:DownloadController');
+// const trace = debugFactory('FileService:DownloadController');
 
 /* TODO: add JWT token check */
 export class DownloadController {
@@ -33,7 +33,7 @@ export class DownloadController {
 
   private validateFileName(fileName: string) {
     const resolved = path.resolve(this.storageDirectory, fileName);
-    trace(resolved);
+    // trace(resolved);
 
     if (resolved.startsWith(this.storageDirectory)) {
       return resolved;

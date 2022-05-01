@@ -1,13 +1,13 @@
 import {inject, intercept} from '@loopback/core';
 import {param, post, Request, requestBody} from '@loopback/rest';
-import debugFactory from 'debug';
+// import debugFactory from 'debug';
 import {unlink} from 'fs';
 import {MulterInterceptor} from '../interceptors';
 import {FileService} from '../keys';
 import {FileData} from '../models';
 import {RedisService, UploadRequestHandlerService} from '../services';
 
-const trace = debugFactory('FileService:UploadController');
+// const trace = debugFactory('FileService:UploadController');
 
 /* TODO: add JWT check token */
 export class UploadController {
@@ -54,7 +54,6 @@ export class UploadController {
       );
 
       /* Update redis */
-      trace(fileRequest);
       await redisService.client.SET(token, fileRequest.toString());
     } catch (err) {
       uploadRequestHandlerService.removeFiles(files);

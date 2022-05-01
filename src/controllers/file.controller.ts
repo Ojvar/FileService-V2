@@ -3,13 +3,13 @@
 
 import {inject, intercept} from '@loopback/core';
 import {get, HttpErrors, param, response} from '@loopback/rest';
-import debugFactory from 'debug';
+// import debugFactory from 'debug';
 import {MulterInterceptor} from '../interceptors';
 import {FileService} from '../keys';
-import {FileData, RequestToken} from '../models';
+import {EnumRequestTokenStatus, FileData, RequestToken} from '../models';
 import {RedisService} from '../services';
 
-const trace = debugFactory('FileService:FileController');
+// const trace = debugFactory('FileService:FileController');
 
 /* TODO: add JWT check token */
 export class FileController {
@@ -38,21 +38,17 @@ export class FileController {
   async requestToken(
     @param.header.string('file-token') fileToken: string,
   ): Promise<Record<string, FileData>> {
-    trace(fileToken);
+    const request = await this.redis.client.GET(fileToken);
+    const fileRequest = RequestToken.toJSON(request);
 
-    const fileRequest = await this.redis.client.GET(fileToken);
-    trace(fileRequest);
-    if (!fileRequest) {
-      throw new HttpErrors.BadRequest();
+    if (fileRequest.status === EnumRequestTokenStatus.DISMISSED) {
+      throw new HttpErrors.BadRequest('Invalid Access');
     }
 
-    const request = new RequestToken(JSON.parse(fileRequest));
-    trace(request);
-    Object.values(request.uploaded_files).forEach(
+    Object.values(fileRequest.uploaded_files).forEach(
       value => (value.path = value.filename),
     );
-    trace(request);
 
-    return request.uploaded_files ?? {};
+    return fileRequest.uploaded_files ?? {};
   }
 }

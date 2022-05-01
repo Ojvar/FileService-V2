@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {Model, model, property} from '@loopback/repository';
 
+export enum EnumRequestTokenStatus {
+  NONE,
+  COMMITED,
+  DISMISSED,
+}
+
 @model()
 export class FileData extends Model {
   @property({type: 'string'}) fieldname: string;
@@ -28,7 +34,8 @@ export class RequestToken extends Model {
   @property({type: 'string', required: true}) user_id: string;
   @property({type: 'date', required: true}) created_at: Date;
   @property({type: 'array', required: true}) allowed_files: string[];
-  @property({type: 'boolean', default: false}) commited?: boolean;
+  @property({type: 'number', default: EnumRequestTokenStatus.NONE})
+  status: EnumRequestTokenStatus;
   @property({
     type: 'object',
     required: false,
@@ -45,8 +52,8 @@ export class RequestToken extends Model {
     return JSON.stringify(this.toJSON());
   }
 
-  static toJSON(dataStr: string): RequestToken {
-    return JSON.parse(dataStr);
+  static toJSON(dataStr: string | null | undefined): RequestToken {
+    return new RequestToken(JSON.parse(dataStr ?? '{}'));
   }
 }
 
