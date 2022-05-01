@@ -80,11 +80,11 @@ export class TokenController {
     }
   }
 
-  @del('/token/{token}')
+  @del('/token')
   @response(200, {
     description: 'Dismiss a token, and delete all uploaded files',
   })
-  async dismiss(@param.path.string('token') token: string) {
+  async dismiss(@param.header.string('file-token') token: string) {
     /* Try to delete uploaded files */
     const reqStr = await this.redis.client.GET(token);
     if (!reqStr) {
@@ -107,8 +107,8 @@ export class TokenController {
     });
   }
 
-  @patch('/token/{token}')
-  async commit(@param.path.string('token') token: string) {
+  @patch('/token')
+  async commit(@param.header.string('file-token') token: string) {
     await this.redis.client.DEL(token);
   }
 }

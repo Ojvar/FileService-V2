@@ -19,11 +19,9 @@ import multer from 'multer';
 import path from 'path';
 import {RedisClientOptions} from 'redis';
 import {v4 as uuidV4} from 'uuid';
-import {FileTokenSpecEnhancer} from './components';
 import {RequestConfig} from './controllers';
 import {MulterInterceptor} from './interceptors';
 import {FileService} from './keys';
-import {RequestToken} from './models';
 import {MySequence} from './sequence';
 
 export {ApplicationConfig};
@@ -45,17 +43,6 @@ export class FileServiceApplication extends BootMixin(
       this.configure(RestExplorerBindings.COMPONENT).to({path: '/explorer'});
       this.component(RestExplorerComponent);
     }
-
-    /* TEST */
-    const t = new RequestToken({
-      key: '993866d8-c488-4071-9107-9dda3488bba0',
-      ref: 'string',
-      user_id: 'string',
-      created_at: new Date(),
-      uploaded_files: undefined,
-      allowed_files: ['string'],
-      commited: false,
-    });
 
     /* Config */
     this.configApp(options);
@@ -82,7 +69,8 @@ export class FileServiceApplication extends BootMixin(
       await this.connectToRedis();
     });
 
-    this.component(FileTokenSpecEnhancer);
+    /* THIS IS FOR ADDING API-KEY TO ALL HEADERS IN SWAGGER-UI */
+    // this.component(FileTokenSpecEnhancer);
 
     /* Set upload destination folder */
     const destination =

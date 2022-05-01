@@ -9,6 +9,7 @@ import {RedisService, UploadRequestHandlerService} from '../services';
 
 const trace = debugFactory('FileService:UploadController');
 
+/* TODO: add JWT check token */
 export class UploadController {
   @intercept(MulterInterceptor.BINDING_KEY)
   @post('/file/{field}', {
@@ -20,6 +21,7 @@ export class UploadController {
     },
   })
   async uploadFile(
+    @param.header.string('file-token') fileToken: string,
     @param.path.string('field') field: string,
     @requestBody.file() request: Request,
     // @inject(RestBindings.Http.RESPONSE) response: Response,

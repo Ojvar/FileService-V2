@@ -13,6 +13,7 @@ import {FileService} from '../keys';
 
 const trace = debugFactory('FileService:DownloadController');
 
+/* TODO: add JWT token check */
 export class DownloadController {
   constructor(
     @inject(FileService.STORAGE_DIRECTORY) private storageDirectory: string,
