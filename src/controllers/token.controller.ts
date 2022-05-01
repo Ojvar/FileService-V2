@@ -99,7 +99,7 @@ export class TokenController {
     trace(request);
 
     Object.entries(request.uploaded_files).forEach(([key, value]) => {
-      unlink(resolve(value), err => {
+      unlink(resolve(value.path), err => {
         if (err) {
           console.error(err);
         }

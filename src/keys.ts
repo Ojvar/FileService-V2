@@ -1,8 +1,17 @@
 import {BindingKey} from '@loopback/core';
 import {TokenController} from './controllers';
-import {RedisService} from './services';
+import {RedisService, UploadRequestHandlerService} from './services';
 
 export namespace FileService {
+  export const HEADER_TOKEN = 'file-token';
+
+  export const STORAGE_DIRECTORY =
+    BindingKey.create<string>('storage.directory');
+  export const UPLOAD_REQUEST_HANDLER_SERVICE =
+    BindingKey.create<UploadRequestHandlerService>(
+      'services.UploadRequestHandlerService',
+    );
+
   export const REDIS_SERVICE = BindingKey.create<RedisService>(
     'services.RedisService',
   );

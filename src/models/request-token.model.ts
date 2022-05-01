@@ -2,6 +2,26 @@
 import {Model, model, property} from '@loopback/repository';
 
 @model()
+export class FileData extends Model {
+  @property({type: 'string'}) fieldname: string;
+  @property({type: 'string'}) originalname: string;
+  @property({type: 'string'}) encoding: string;
+  @property({type: 'string'}) mimetype: string;
+  @property({type: 'number'}) size: number;
+  @property({type: 'string'}) destination: string;
+  @property({type: 'string'}) filename: string;
+  @property({type: 'string'}) path: string;
+
+  constructor(data: Partial<FileData>) {
+    super(data);
+  }
+
+  toString(): string {
+    return JSON.stringify(this.toJSON());
+  }
+}
+
+@model()
 export class RequestToken extends Model {
   @property({type: 'string', required: true}) key: string;
   @property({type: 'string', required: true}) ref: string;
@@ -13,19 +33,17 @@ export class RequestToken extends Model {
     type: 'object',
     required: false,
     default: {},
-    jsonSchema: {
-      additionalProperties: {
-        type: 'object',
-      },
-    },
+    jsonSchema: {additionalProperties: {type: 'object'}},
   })
-  uploaded_files: Record<string, string>;
+  uploaded_files: Record<string, FileData>;
 
   constructor(data: Partial<RequestToken>) {
     super(data);
   }
 
-  public toString = (): string => JSON.stringify(this);
+  toString(): string {
+    return JSON.stringify(this.toJSON());
+  }
 
   static toJSON(dataStr: string): RequestToken {
     return JSON.parse(dataStr);

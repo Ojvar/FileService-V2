@@ -24,5 +24,7 @@ declare namespace NodeJS {
     RABBITMQ_VHOST: string;
 
     REQUEST_EXPIRE_MILISECONDS: number;
+
+    MULTER_MAX_FILE_SIZE: number;
   }
 }
