@@ -103,6 +103,17 @@ export class FileServiceApplication extends BootMixin(
       },
     });
 
+    /* MongoDB */
+    this.bind(FileService.DS_CONFIG_FILE_STORAGE).to({
+      url: process.env.FILE_STORAGE_DB_URL,
+      host: process.env.FILE_STORAGE_DB_HOST,
+      port: +process.env.FILE_STORAGE_DB_PORT,
+      user: process.env.FILE_STORAGE_DB_USER,
+      password: process.env.FILE_STORAGE_DB_PASSWORD,
+      database: process.env.FILE_STORAGE_DB_DATABASE,
+    });
+
+    /* RabbitMQ */
     this.configure<RabbitmqComponentConfig>(RabbitmqBindings.COMPONENT).to({
       options: {
         protocol: process.env.RABBITMQ_PROTOCOL,

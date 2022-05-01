@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {inject} from '@loopback/core';
 import debugFactory from 'debug';
+import {unlink} from 'fs';
 import {ConsumeMessage, rabbitConsume} from 'loopback-rabbitmq';
+import {resolve} from 'path';
 import {FileService} from '../keys';
 import {RequestToken} from '../models';
 import {RedisService} from '../services';
@@ -16,18 +18,29 @@ export class FileRequestConsumer {
     routingKey: FileService.RmqQueues.FILE_REQUEST.routeKey,
     queue: FileService.RmqQueues.FILE_REQUEST.name,
   })
-  async handle(message: RequestToken, rawMessage: ConsumeMessage) {
+  async handle(message: string, rawMessage: ConsumeMessage) {
     try {
       trace(message);
-      trace(rawMessage);
 
-      /* todo:
-      get record data from redis
-      delete all files from disk
-      delete redis record
-      */
+      const request = await this.redis.client.GETDEL(message);
+      trace(request);
+      if (!request) {
+        return;
+      }
 
-      await this.redis.client.DEL(message.key);
+      const reuqestData = new RequestToken(JSON.parse(request));
+      trace(reuqestData);
+
+      /* Delete file, if request was not commited */
+      if (!reuqestData.commited) {
+        Object.entries(reuqestData.uploaded_files).forEach(([key, value]) => {
+          unlink(resolve(value.path), err => {
+            if (err) {
+              console.error(err);
+            }
+          });
+        });
+      }
     } catch (err) {
       console.error(err);
     }
