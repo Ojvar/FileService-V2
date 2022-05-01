@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {config, inject} from '@loopback/core';
+import {repository} from '@loopback/repository';
 import {
   del,
   HttpErrors,
@@ -9,14 +10,16 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-// import debugFactory from 'debug';
+import debugFactory from 'debug';
 import {RabbitmqBindings, RabbitmqProducer} from 'loopback-rabbitmq';
 import {v4 as uuidV4} from 'uuid';
 import {FileService} from '../keys';
 import {EnumRequestTokenStatus, RequestToken} from '../models';
+import {FileRepository} from '../repositories';
 import {RedisService} from '../services';
+import {UploadFileItem} from './upload.controller';
 
-// const trace = debugFactory('FileService:TokenController');
+const trace = debugFactory('FileService:TokenController');
 
 export class TokenController {
   constructor(
@@ -85,11 +88,42 @@ export class TokenController {
   }
 
   @patch('/token')
-  async commit(@param.header.string('file-token') token: string) {
-    await this.updateRequestData(token, EnumRequestTokenStatus.COMMITED);
+  async commit(
+    @param.header.string('file-token') token: string,
+    @repository(FileRepository) fileRepository: FileRepository,
+  ) {
+    const reuqestData = await this.updateRequestData(
+      token,
+      EnumRequestTokenStatus.COMMITED,
+    );
+
+    /* Save to database */
+    trace('COMMIT', reuqestData);
+    Object.values(reuqestData.uploaded_files).forEach(
+      async (file: UploadFileItem) => {
+        try {
+          await fileRepository.create({
+            filename: file.filename,
+            original_name: file.originalname,
+            mimetype: file.mimetype,
+            size: file.size,
+            uploaded: {
+              at: reuqestData.created_at,
+              by: reuqestData.user_id,
+            },
+          });
+        } catch (err) {
+          /* TODO: GATHERING ERROR */
+          console.error(err);
+        }
+      },
+    );
   }
 
-  async updateRequestData(token: string, statue: EnumRequestTokenStatus) {
+  async updateRequestData(
+    token: string,
+    statue: EnumRequestTokenStatus,
+  ): Promise<RequestToken> {
     /* Try to delete uploaded files */
     const reqStr = await this.redis.client.GET(token);
     const requestData = RequestToken.toJSON(reqStr);
@@ -100,6 +134,8 @@ export class TokenController {
     /* Update request data */
     requestData.status = statue;
     await this.redis.client.SET(token, requestData.toString());
+
+    return requestData;
   }
 }
 

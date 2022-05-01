@@ -73,8 +73,6 @@ export function getFilesAndFields<T = unknown>(
     originalname: file.originalname,
     filename: file.filename,
     path: file.path,
-    encoding: (request.headers['content-encoding'] ??
-      request.header('content-transfer-encoding')) as string,
     mimetype: file.mimetype,
     size: file.size,
   });
@@ -95,7 +93,6 @@ export type UploadFileItem = {
   originalname: string;
   filename: string;
   path: string;
-  encoding: string;
   mimetype: string;
   size: number;
 };
