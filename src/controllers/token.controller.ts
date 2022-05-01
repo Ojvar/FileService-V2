@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-// Uncomment these imports to begin using these cool features!
-
 import {config, inject} from '@loopback/core';
 import {
   del,
@@ -67,7 +65,7 @@ export class TokenController {
 
       /* Publish rabbitmq message - delayed message,
          to delete this record from redis db after a specified time */
-      this.rabbitmqProducer.publish(
+      await this.rabbitmqProducer.publish(
         FileService.RmqExchanges.FILE_SERVICE.name,
         FileService.RmqQueues.FILE_REQUEST.routeKey,
         requestData,

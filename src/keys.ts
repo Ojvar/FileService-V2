@@ -1,5 +1,6 @@
 import {BindingKey} from '@loopback/core';
 import {TokenController} from './controllers';
+import {FileStorageDataSourceConfig} from './datasources';
 import {RedisService, UploadRequestHandlerService} from './services';
 
 export namespace FileService {
@@ -7,6 +8,10 @@ export namespace FileService {
 
   export const STORAGE_DIRECTORY =
     BindingKey.create<string>('storage.directory');
+  export const DS_CONFIG_FILE_STORAGE =
+    BindingKey.create<FileStorageDataSourceConfig>(
+      'datasources.config.FileStorage',
+    );
   export const UPLOAD_REQUEST_HANDLER_SERVICE =
     BindingKey.create<UploadRequestHandlerService>(
       'services.UploadRequestHandlerService',

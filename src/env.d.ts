@@ -23,6 +23,13 @@ declare namespace NodeJS {
     RABBITMQ_PASS: string;
     RABBITMQ_VHOST: string;
 
+    FILE_STORAGE_DB_URL: string;
+    FILE_STORAGE_DB_HOST: string;
+    FILE_STORAGE_DB_PORT: number;
+    FILE_STORAGE_DB_USER: string;
+    FILE_STORAGE_DB_PASSWORD: string;
+    FILE_STORAGE_DB_DATABASE: string;
+
     REQUEST_EXPIRE_MILISECONDS: number;
 
     MULTER_MAX_FILE_SIZE: number;
