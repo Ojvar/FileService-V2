@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {inject} from '@loopback/core';
-import debugFactory from 'debug';
+// import debugFactory from 'debug';
 import {unlink} from 'fs';
 import {ConsumeMessage, rabbitConsume} from 'loopback-rabbitmq';
 import {resolve} from 'path';
@@ -8,7 +8,7 @@ import {FileService} from '../keys';
 import {EnumRequestTokenStatus, RequestToken} from '../models';
 import {RedisService} from '../services';
 
-const trace = debugFactory('FileService:FileRequestConsumer');
+// const trace = debugFactory('FileService:FileRequestConsumer');
 
 export class FileRequestConsumer {
   constructor(@inject(FileService.REDIS_SERVICE) private redis: RedisService) {}
@@ -22,7 +22,6 @@ export class FileRequestConsumer {
     try {
       const request = await this.redis.client.GETDEL(message);
       const reuqestData = RequestToken.toJSON(request);
-      trace(reuqestData);
 
       /* Delete file, if request was not commited */
       if (reuqestData.status !== EnumRequestTokenStatus.COMMITED) {
