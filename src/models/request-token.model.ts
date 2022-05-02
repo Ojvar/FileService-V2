@@ -9,6 +9,7 @@ export enum EnumRequestTokenStatus {
 
 @model()
 export class FileData extends Model {
+  @property({type: 'string', required: false}) id?: string;
   @property({type: 'string'}) fieldname: string;
   @property({type: 'string'}) originalname: string;
   @property({type: 'string'}) encoding: string;

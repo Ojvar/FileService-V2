@@ -17,7 +17,6 @@ import {FileService} from '../keys';
 import {EnumRequestTokenStatus, RequestToken} from '../models';
 import {FileRepository} from '../repositories';
 import {RedisService} from '../services';
-import {UploadFileItem} from './upload.controller';
 
 const trace = debugFactory('FileService:TokenController');
 
@@ -92,43 +91,57 @@ export class TokenController {
     @param.header.string('file-token') token: string,
     @repository(FileRepository) fileRepository: FileRepository,
   ) {
-    const reuqestData = await this.updateRequestData(
+    /* Get request data from redis */
+    let reuqestStr = await this.redis.client.GET(token);
+    const requestData = RequestToken.toJSON(reuqestStr);
+    if (requestData.status !== EnumRequestTokenStatus.NONE) {
+      throw new HttpErrors.UnprocessableEntity();
+    }
+
+    /* Save to database and update requestData */
+    const keys = Object.keys(requestData.uploaded_files);
+
+    for (const key of keys) {
+      try {
+        const file = requestData.uploaded_files[key];
+        const savedFile = await fileRepository.create({
+          filename: file.filename,
+          original_name: file.originalname,
+          mimetype: file.mimetype,
+          size: file.size,
+          uploaded: {
+            at: requestData.created_at,
+            by: requestData.user_id,
+          },
+        });
+
+        requestData.uploaded_files[key].id = savedFile.getId();
+      } catch (err) {
+        /* TODO: GATHERING ERROR */
+        console.error(err);
+      }
+    }
+
+    await this.updateRequestData(
       token,
       EnumRequestTokenStatus.COMMITED,
-    );
-
-    /* Save to database */
-    trace('COMMIT', reuqestData);
-    Object.values(reuqestData.uploaded_files).forEach(
-      async (file: UploadFileItem) => {
-        try {
-          await fileRepository.create({
-            filename: file.filename,
-            original_name: file.originalname,
-            mimetype: file.mimetype,
-            size: file.size,
-            uploaded: {
-              at: reuqestData.created_at,
-              by: reuqestData.user_id,
-            },
-          });
-        } catch (err) {
-          /* TODO: GATHERING ERROR */
-          console.error(err);
-        }
-      },
+      requestData,
     );
   }
 
   async updateRequestData(
     token: string,
     statue: EnumRequestTokenStatus,
+    requestData?: RequestToken,
   ): Promise<RequestToken> {
-    /* Try to delete uploaded files */
-    const reqStr = await this.redis.client.GET(token);
-    const requestData = RequestToken.toJSON(reqStr);
-    if (requestData.status !== EnumRequestTokenStatus.NONE) {
-      throw new HttpErrors.UnprocessableEntity();
+    console.log('updateReq', requestData);
+
+    if (!requestData) {
+      const reqStr = await this.redis.client.GET(token);
+      requestData = RequestToken.toJSON(reqStr);
+      if (requestData.status !== EnumRequestTokenStatus.NONE) {
+        throw new HttpErrors.UnprocessableEntity();
+      }
     }
 
     /* Update request data */
