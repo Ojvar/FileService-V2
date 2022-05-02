@@ -19,6 +19,7 @@ import multer from 'multer';
 import path from 'path';
 import {RedisClientOptions} from 'redis';
 import {v4 as uuidV4} from 'uuid';
+import {KCAuthenticationComponent} from './components';
 import {RequestConfig} from './controllers';
 import {MulterInterceptor} from './interceptors';
 import {FileService} from './keys';
@@ -69,8 +70,7 @@ export class FileServiceApplication extends BootMixin(
       await this.connectToRedis();
     });
 
-    /* THIS IS FOR ADDING API-KEY TO ALL HEADERS IN SWAGGER-UI */
-    // this.component(FileTokenSpecEnhancer);
+    this.component(KCAuthenticationComponent);
 
     /* Set upload destination folder */
     const destination =

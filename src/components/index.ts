@@ -1,1 +1,1 @@
-export * from './file-request.component';
+export * from './security.component';

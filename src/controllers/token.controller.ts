@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {config, inject} from '@loopback/core';
+import {config, inject, intercept} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {
   del,
@@ -10,15 +10,16 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import debugFactory from 'debug';
+// import debugFactory from 'debug';
 import {RabbitmqBindings, RabbitmqProducer} from 'loopback-rabbitmq';
 import {v4 as uuidV4} from 'uuid';
+import {protect} from '../interceptors';
 import {FileService} from '../keys';
 import {EnumRequestTokenStatus, RequestToken} from '../models';
 import {FileRepository} from '../repositories';
 import {RedisService} from '../services';
 
-const trace = debugFactory('FileService:TokenController');
+// const trace = debugFactory('FileService:TokenController');
 
 export class TokenController {
   constructor(
@@ -28,6 +29,7 @@ export class TokenController {
     private rabbitmqProducer: RabbitmqProducer,
   ) {}
 
+  @intercept(protect('realm:no-body'))
   @post('/token')
   @response(200, {content: {'text/plain': {schema: {type: 'string'}}}})
   async requestToken(

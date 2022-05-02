@@ -1,13 +1,21 @@
 import {BindingKey} from '@loopback/core';
 import {TokenController} from './controllers';
 import {FileStorageDataSourceConfig} from './datasources';
-import {RedisService, UploadRequestHandlerService} from './services';
+import {
+  KeycloakConnectService,
+  RedisService,
+  UploadRequestHandlerService,
+} from './services';
 
 export namespace FileService {
   export const HEADER_TOKEN = 'file-token';
 
   export const STORAGE_DIRECTORY =
     BindingKey.create<string>('storage.directory');
+  export const KEYCLOAK_CONNECTOR_SERVICE =
+    BindingKey.create<KeycloakConnectService>(
+      'services.KeycloakConnectService',
+    );
   export const DS_CONFIG_FILE_STORAGE =
     BindingKey.create<FileStorageDataSourceConfig>(
       'datasources.config.FileStorage',
