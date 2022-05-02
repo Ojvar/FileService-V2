@@ -59,6 +59,7 @@
     "@loopback/service-proxy": "^4.1.2",
     "dotenv": "^16.0.0",
     "express-session": "^1.17.2",
+    "jwt-decode": "^3.1.2",
     "keycloak-connect": "^18.0.0",
     "loopback-connector-mongodb": "^6.2.0",
     "loopback-rabbitmq": "^1.1.6-0",

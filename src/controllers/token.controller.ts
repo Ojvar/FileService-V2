@@ -7,9 +7,12 @@ import {
   param,
   patch,
   post,
+  Request,
   requestBody,
   response,
+  RestBindings,
 } from '@loopback/rest';
+import {Grant} from 'keycloak-connect';
 // import debugFactory from 'debug';
 import {RabbitmqBindings, RabbitmqProducer} from 'loopback-rabbitmq';
 import {v4 as uuidV4} from 'uuid';
@@ -33,6 +36,7 @@ export class TokenController {
   @post('/token')
   @response(200, {content: {'text/plain': {schema: {type: 'string'}}}})
   async requestToken(
+    @inject(RestBindings.Http.REQUEST) req: Request,
     @requestBody({
       content: {
         'application/json': {
@@ -50,6 +54,10 @@ export class TokenController {
     })
     body: TokenRequestBody,
   ): Promise<string> {
+    /* TODO: USER KAUTH FOR ACCESS TO USER DATA */
+    const userData = req.kauth.grant as Grant;
+    console.log(userData);
+
     const requestData: RequestToken = new RequestToken({
       key: uuidV4(),
       created_at: new Date(),
