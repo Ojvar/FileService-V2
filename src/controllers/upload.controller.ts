@@ -2,16 +2,15 @@ import {inject, intercept} from '@loopback/core';
 import {param, post, Request, requestBody} from '@loopback/rest';
 // import debugFactory from 'debug';
 import {unlink} from 'fs';
-import {MulterInterceptor} from '../interceptors';
+import {protect} from '../interceptors';
 import {FileService} from '../keys';
 import {FileData} from '../models';
 import {RedisService, UploadRequestHandlerService} from '../services';
 
 // const trace = debugFactory('FileService:UploadController');
 
-/* TODO: add JWT check token */
 export class UploadController {
-  @intercept(MulterInterceptor.BINDING_KEY)
+  @intercept(protect('realm:no-body'))
   @post('/file/{field}', {
     responses: {
       200: {

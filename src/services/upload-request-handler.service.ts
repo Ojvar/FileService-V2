@@ -1,13 +1,13 @@
 import {BindingScope, inject, injectable} from '@loopback/core';
 import {HttpErrors, Request} from '@loopback/rest';
-import debugFactory from 'debug';
+// import debugFactory from 'debug';
 import {unlink} from 'fs';
 import {UploadFileItem} from '../controllers';
 import {FileService} from '../keys';
 import {EnumRequestTokenStatus, RequestToken} from '../models';
 import {RedisService} from './redis.service';
 
-const trace = debugFactory('FileService:UploadRequestHandlerService');
+// const trace = debugFactory('FileService:UploadRequestHandlerService');
 
 @injectable({scope: BindingScope.TRANSIENT})
 export class UploadRequestHandlerService {
@@ -23,13 +23,13 @@ export class UploadRequestHandlerService {
 
     /* Check token and fetch data from redis */
     const token = request.header(FileService.HEADER_TOKEN);
-    trace(token);
+    // trace(token);
 
     const requestStr = !!token && (await this.redisService.client.GET(token));
-    trace(requestStr);
+    // trace(requestStr);
 
     const requestData = RequestToken.toJSON(requestStr || '{}');
-    trace(requestData);
+    // trace(requestData);
 
     if (requestData.status !== EnumRequestTokenStatus.NONE) {
       this.removeFiles(files);

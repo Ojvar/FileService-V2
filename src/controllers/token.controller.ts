@@ -12,7 +12,7 @@ import {
   response,
   RestBindings,
 } from '@loopback/rest';
-import {Grant} from 'keycloak-connect';
+import {Keycloak} from 'keycloak-connect';
 // import debugFactory from 'debug';
 import {RabbitmqBindings, RabbitmqProducer} from 'loopback-rabbitmq';
 import {v4 as uuidV4} from 'uuid';
@@ -21,30 +21,34 @@ import {FileService} from '../keys';
 import {EnumRequestTokenStatus, RequestToken} from '../models';
 import {FileRepository} from '../repositories';
 import {RedisService} from '../services';
+import {BaseController} from './base.controller';
 
 // const trace = debugFactory('FileService:TokenController');
 
-export class TokenController {
+export class TokenController extends BaseController {
   constructor(
     @config() private configs: RequestConfig,
     @inject(FileService.REDIS_SERVICE) private redis: RedisService,
     @inject(RabbitmqBindings.RABBITMQ_PRODUCER)
     private rabbitmqProducer: RabbitmqProducer,
-  ) {}
+    @inject(RestBindings.Http.REQUEST) protected req: Request,
+    @inject(FileService.KEYCLOAK_CONNECTOR_SERVICE)
+    keycloak: Keycloak,
+  ) {
+    super(req, keycloak);
+  }
 
   @intercept(protect('realm:no-body'))
   @post('/token')
   @response(200, {content: {'text/plain': {schema: {type: 'string'}}}})
   async requestToken(
-    @inject(RestBindings.Http.REQUEST) req: Request,
     @requestBody({
       content: {
         'application/json': {
           schema: {
             type: 'object',
-            required: ['userId', 'ref', 'files'],
+            required: ['ref', 'files'],
             properties: {
-              userId: {type: 'string'},
               ref: {type: 'string'},
               allowedFiles: {type: 'array', items: {type: 'string'}},
             },
@@ -54,15 +58,13 @@ export class TokenController {
     })
     body: TokenRequestBody,
   ): Promise<string> {
-    /* TODO: USER KAUTH FOR ACCESS TO USER DATA */
-    const userData = req.kauth.grant as Grant;
-    console.log(userData);
+    const userInfo = await this.getUserInfo();
 
     const requestData: RequestToken = new RequestToken({
       key: uuidV4(),
       created_at: new Date(),
       ref: body.ref,
-      user_id: body.userId,
+      user_id: userInfo.sub,
       allowed_files: body.allowedFiles,
       status: EnumRequestTokenStatus.NONE,
     });
@@ -144,8 +146,6 @@ export class TokenController {
     statue: EnumRequestTokenStatus,
     requestData?: RequestToken,
   ): Promise<RequestToken> {
-    console.log('updateReq', requestData);
-
     if (!requestData) {
       const reqStr = await this.redis.client.GET(token);
       requestData = RequestToken.toJSON(reqStr);
@@ -163,7 +163,6 @@ export class TokenController {
 }
 
 export type TokenRequestBody = {
-  userId: string;
   ref: string;
   allowedFiles: string[];
 };

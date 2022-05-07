@@ -1,21 +1,18 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-// Uncomment these imports to begin using these cool features!
-
 import {inject, intercept} from '@loopback/core';
 import {get, HttpErrors, param, response} from '@loopback/rest';
 // import debugFactory from 'debug';
-import {MulterInterceptor} from '../interceptors';
+import {protect} from '../interceptors';
 import {FileService} from '../keys';
 import {EnumRequestTokenStatus, FileData, RequestToken} from '../models';
 import {RedisService} from '../services';
 
 // const trace = debugFactory('FileService:FileController');
 
-/* TODO: add JWT check token */
 export class FileController {
   constructor(@inject(FileService.REDIS_SERVICE) private redis: RedisService) {}
 
-  @intercept(MulterInterceptor.BINDING_KEY)
+  @intercept(protect('realm:no-body'))
   @get('/file')
   @response(200, {
     content: {
@@ -42,7 +39,7 @@ export class FileController {
     const fileRequest = RequestToken.toJSON(request);
 
     if (fileRequest.status === EnumRequestTokenStatus.DISMISSED) {
-      throw new HttpErrors.BadRequest('Invalid Access');
+      throw new HttpErrors.BadRequest('Access denied');
     }
 
     Object.values(fileRequest.uploaded_files).forEach(
