@@ -35,7 +35,6 @@ export class DownloadController {
 
   private validateFileName(fileName: string): string | undefined {
     const resolved = path.resolve(this.storageDirectory, fileName);
-
     if (resolved.startsWith(this.storageDirectory) && existsSync(resolved)) {
       return resolved;
     }
