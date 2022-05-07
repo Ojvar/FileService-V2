@@ -1,6 +1,13 @@
 import {BindingScope, config, injectable} from '@loopback/core';
 import debugFactory from 'debug';
-import {createClient, RedisClientOptions, RedisClientType} from 'redis';
+import {
+  createClient,
+  RedisClientOptions,
+  RedisClientType,
+  RedisFunctions,
+  RedisModules,
+  RedisScripts,
+} from 'redis';
 import {EventEmitter} from 'stream';
 
 const trace = debugFactory('FileService:RedisService');
@@ -13,7 +20,11 @@ export enum EnumEvents {
 
 @injectable({scope: BindingScope.SINGLETON})
 export class RedisService extends EventEmitter {
-  private _client: RedisClientType | null;
+  private _client: null | RedisClientType<
+    RedisModules,
+    RedisFunctions,
+    RedisScripts
+  >;
 
   public get client(): RedisClientType {
     return this._client as RedisClientType;
