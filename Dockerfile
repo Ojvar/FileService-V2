@@ -1,5 +1,4 @@
 # Check out https://hub.docker.com/_/node to select a new base image
-#FROM knode0.qeng.ir:5000/node:16-slim
 FROM knode0.qeng.ir:5000/node:16-slim
 
 RUN npm i -g npm@latest
