@@ -20,6 +20,7 @@ export class FileController {
         schema: {
           type: 'array',
           items: {
+            id: {type: 'string'},
             fieldname: {type: 'string'},
             originalname: {type: 'string'},
             encoding: {type: 'string'},
