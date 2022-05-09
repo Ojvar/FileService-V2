@@ -38,14 +38,18 @@ export class FileController {
     const request = await this.redis.client.GET(fileToken);
     const fileRequest = RequestToken.toJSON(request);
 
-    if (fileRequest.status === EnumRequestTokenStatus.DISMISSED) {
+    if (fileRequest?.status === EnumRequestTokenStatus.DISMISSED) {
       throw new HttpErrors.BadRequest('Access denied');
     }
 
-    Object.values(fileRequest.uploaded_files).forEach(
-      value => (value.path = value.filename),
-    );
+    if (!fileRequest.uploaded_files) {
+      return {};
+    } else {
+      Object.values(fileRequest.uploaded_files).forEach(
+        value => (value.path = value.filename),
+      );
 
-    return fileRequest.uploaded_files ?? {};
+      return fileRequest.uploaded_files ?? {};
+    }
   }
 }
