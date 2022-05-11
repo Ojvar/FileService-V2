@@ -7,11 +7,14 @@ import {
   HttpErrors,
   param,
   post,
+  Request,
   requestBody,
   response,
   ResponseObject,
+  RestBindings,
 } from '@loopback/rest';
 import {FILE_DTO} from 'qeng-common';
+import {getServerUrl} from '../helpers';
 // import debugFactory from 'debug';
 import {protect} from '../interceptors';
 import {FileService} from '../keys';
@@ -62,6 +65,7 @@ export class FileController {
   @response(200, FileResponseContent)
   async getDbFiles(
     @repository(FileRepository) filesRepo: FileRepository,
+    @inject(RestBindings.Http.REQUEST) req: Request,
     @inject(FileService.SERVER_URL) serverUrl: string,
     @requestBody({
       content: {
@@ -78,6 +82,7 @@ export class FileController {
       where: {id: {inq: files}, deleted: {eq: undefined}},
     });
 
+    serverUrl = getServerUrl(req, serverUrl);
     return filesList.reduce((result: FilesListResult, item: File) => {
       result[item.id as string] = {
         uploaded_at: item.uploaded.at,

@@ -1,6 +1,8 @@
 # Check out https://hub.docker.com/_/node to select a new base image
 FROM knode0.qeng.ir:5000/node:16-slim
 
+ARG NPM_REGISTRY=http://localhost:4873/
+
 RUN npm i -g npm@latest
 
 # Set to a non-root built-in user `node`
@@ -16,7 +18,10 @@ WORKDIR /home/node/app
 # where available (npm@5+)
 COPY --chown=node package*.json ./
 
-RUN npm install --legacy-peer-deps
+# SETUP NPM
+RUN npm set registry $NPM_REGISTRY
+
+RUN npm install --legacy-peer-deps --loglevel verbose
 
 # Bundle app source code
 COPY --chown=node . .

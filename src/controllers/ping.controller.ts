@@ -24,9 +24,7 @@ const PING_RESPONSE: ResponseObject = {
           url: {type: 'string'},
           headers: {
             type: 'object',
-            properties: {
-              'Content-Type': {type: 'string'},
-            },
+            properties: {'Content-Type': {type: 'string'}},
             additionalProperties: true,
           },
         },
@@ -44,7 +42,7 @@ export class PingController {
   // Map to `GET /ping`
   @get('/ping')
   @response(200, PING_RESPONSE)
-  ping(): object {
+  ping(@inject(RestBindings.Http.REQUEST) req: Request): object {
     // Reply with a greeting, the current time, the url, and request headers
     return {
       greeting: 'Hello from LoopBack',
