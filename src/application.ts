@@ -46,6 +46,9 @@ export class FileServiceApplication extends BootMixin(
     }
 
     /* Config */
+    this.onStart(async () => {
+      this.bind(FileService.SERVER_URL).to(String(this.restServer.url));
+    });
     this.configApp(options);
 
     this.projectRoot = __dirname;

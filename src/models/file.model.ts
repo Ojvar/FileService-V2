@@ -1,5 +1,5 @@
 import {Entity, model, property} from '@loopback/repository';
-import {TimeStampModel} from './extra-models';
+import {COMMON_MODELS} from 'qeng-common';
 
 @model()
 export class File extends Entity {
@@ -8,7 +8,8 @@ export class File extends Entity {
   @property({type: 'string', required: true}) original_name: string;
   @property({type: 'string', required: true}) mimetype: string;
   @property({type: 'number', required: true}) size: number;
-  @property() uploaded: TimeStampModel;
+  @property() uploaded: COMMON_MODELS.ModifyStamp;
+  @property() deleted?: COMMON_MODELS.ModifyStamp;
 
   constructor(data?: Partial<File>) {
     super(data);

@@ -9,6 +9,7 @@ import {
 
 export namespace FileService {
   export const HEADER_TOKEN = 'file-token';
+  export const SERVER_URL = BindingKey.create<string>('server_url');
 
   export const STORAGE_DIRECTORY =
     BindingKey.create<string>('storage.directory');
