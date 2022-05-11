@@ -2,9 +2,10 @@
 import {Model, model, property} from '@loopback/repository';
 
 export enum EnumRequestTokenStatus {
-  NONE,
-  COMMITED,
-  DISMISSED,
+  NONE = 0,
+  COMMITED = 1,
+  SAVED = 2,
+  DISMISSED = 3,
 }
 
 @model()

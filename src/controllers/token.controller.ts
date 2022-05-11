@@ -32,8 +32,7 @@ export class TokenController extends BaseController {
     @inject(RabbitmqBindings.RABBITMQ_PRODUCER)
     private rabbitmqProducer: RabbitmqProducer,
     @inject(RestBindings.Http.REQUEST) protected req: Request,
-    @inject(FileService.KEYCLOAK_CONNECTOR_SERVICE)
-    keycloak: Keycloak,
+    @inject(FileService.KEYCLOAK_CONNECTOR_SERVICE) keycloak: Keycloak,
   ) {
     super(req, keycloak);
   }
@@ -98,8 +97,8 @@ export class TokenController extends BaseController {
     await this.updateRequestData(token, EnumRequestTokenStatus.DISMISSED);
   }
 
-  @patch('/token')
-  async commit(
+  @patch('/token/save')
+  async save(
     @param.header.string('file-token') token: string,
     @repository(FileRepository) fileRepository: FileRepository,
   ) {
@@ -112,7 +111,6 @@ export class TokenController extends BaseController {
 
     /* Save to database and update requestData */
     const keys = Object.keys(requestData.uploaded_files);
-
     for (const key of keys) {
       try {
         const file = requestData.uploaded_files[key];
@@ -121,17 +119,30 @@ export class TokenController extends BaseController {
           original_name: file.originalname,
           mimetype: file.mimetype,
           size: file.size,
-          uploaded: {
-            at: requestData.created_at,
-            by: requestData.user_id,
-          },
+          uploaded: {at: requestData.created_at, by: requestData.user_id},
         });
 
         requestData.uploaded_files[key].id = savedFile.getId();
       } catch (err) {
-        /* TODO: GATHERING ERROR */
+        /* TODO: LOG INTO LOGGER SERVICE */
         console.error(err);
       }
+    }
+
+    await this.updateRequestData(
+      token,
+      EnumRequestTokenStatus.NONE,
+      requestData,
+    );
+  }
+
+  @patch('/token/commit')
+  async commit(@param.header.string('file-token') token: string) {
+    /* Get request data from redis */
+    let reuqestStr = await this.redis.client.GET(token);
+    const requestData = RequestToken.toJSON(reuqestStr);
+    if (requestData.status !== EnumRequestTokenStatus.NONE) {
+      throw new HttpErrors.UnprocessableEntity();
     }
 
     await this.updateRequestData(
