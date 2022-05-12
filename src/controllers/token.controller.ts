@@ -114,6 +114,11 @@ export class TokenController extends BaseController {
     for (const key of keys) {
       try {
         const file = requestData.uploaded_files[key];
+
+        if (!!file.id) {
+          continue;
+        }
+
         const savedFile = await fileRepository.create({
           filename: file.filename,
           original_name: file.originalname,
