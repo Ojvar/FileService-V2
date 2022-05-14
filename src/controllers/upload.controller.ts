@@ -49,9 +49,10 @@ export class UploadController {
       }
 
       /* Update uploaded files */
-      fileRequest.uploaded_files[field] = new FileData(
-        files[0] as Express.Multer.File,
-      );
+      fileRequest.uploaded_files[field] = new FileData({
+        ...(files[0] as Express.Multer.File),
+        fieldname: field,
+      });
 
       /* Update redis */
       await redisService.client.SET(token, fileRequest.toString());
