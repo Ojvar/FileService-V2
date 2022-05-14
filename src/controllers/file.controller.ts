@@ -85,6 +85,7 @@ export class FileController {
     serverUrl = getServerUrl(req, serverUrl);
     return filesList.reduce((result: FilesListResult, item: File) => {
       result[item.id as string] = {
+        id: item.id,
         uploaded_at: item.uploaded.at,
         original_name: item.original_name,
         mimetype: item.mimetype,
