@@ -12,7 +12,7 @@ import {RedisService, UploadRequestHandlerService} from '../services';
 export class UploadController {
   @intercept(MulterInterceptor.BINDING_KEY)
   @intercept(protect('realm:no-body'))
-  @post('/file/{field}', {
+  @post('/file/{ref}/{field}', {
     responses: {
       200: {
         content: {'application/json': {schema: {type: 'object'}}},
@@ -22,6 +22,7 @@ export class UploadController {
   })
   async uploadFile(
     @param.header.string('file-token') fileToken: string,
+    @param.path.string('ref') ref: string,
     @param.path.string('field') field: string,
     @requestBody.file() request: Request,
     // @inject(RestBindings.Http.RESPONSE) response: Response,
@@ -34,6 +35,7 @@ export class UploadController {
     try {
       const fileRequest = await uploadRequestHandlerService.checkHeader(
         request,
+        ref,
         field,
         files,
       );

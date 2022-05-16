@@ -38,15 +38,19 @@ export class FileController {
   constructor(@inject(FileService.REDIS_SERVICE) private redis: RedisService) {}
 
   @intercept(protect('realm:no-body'))
-  @get('/files-list')
+  @get('/files-list/{ref}')
   @response(200, FileResponseContent)
   async getRedisFiles(
     @param.header.string('file-token') fileToken: string,
+    @param.path.string('ref') ref: string,
   ): Promise<Record<string, FileData>> {
     const request = await this.redis.client.GET(fileToken);
     const fileRequest = RequestToken.toJSON(request);
 
-    if (fileRequest?.status === EnumRequestTokenStatus.DISMISSED) {
+    if (
+      fileRequest?.status === EnumRequestTokenStatus.DISMISSED ||
+      fileRequest.ref !== ref
+    ) {
       throw new HttpErrors.BadRequest('Access denied');
     }
 
@@ -69,7 +73,13 @@ export class FileController {
     @inject(FileService.SERVER_URL) serverUrl: string,
     @requestBody({
       content: {
-        'application/json': {schema: {type: 'array', items: {type: 'string'}}},
+        'application/json': {
+          schema: {
+            type: 'array',
+            items: {type: 'string'},
+            description: "File's id list",
+          },
+        },
       },
     })
     files: string[],

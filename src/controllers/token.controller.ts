@@ -97,16 +97,20 @@ export class TokenController extends BaseController {
     await this.updateRequestData(token, EnumRequestTokenStatus.DISMISSED);
   }
 
-  @patch('/token/save')
+  @patch('/token/save/{ref}')
   async save(
     @param.header.string('file-token') token: string,
+    @param.path.string('ref') ref: string,
     @repository(FileRepository) fileRepository: FileRepository,
   ) {
     /* Get request data from redis */
     let reuqestStr = await this.redis.client.GET(token);
     const requestData = RequestToken.toJSON(reuqestStr);
-    if (requestData.status !== EnumRequestTokenStatus.NONE) {
-      throw new HttpErrors.UnprocessableEntity();
+    if (
+      requestData.status !== EnumRequestTokenStatus.NONE ||
+      requestData.ref !== ref
+    ) {
+      throw new HttpErrors.UnprocessableEntity('Invalid Reference or Status');
     }
 
     /* Save to database and update requestData */
@@ -141,13 +145,19 @@ export class TokenController extends BaseController {
     );
   }
 
-  @patch('/token/commit')
-  async commit(@param.header.string('file-token') token: string) {
+  @patch('/token/commit/{ref}')
+  async commit(
+    @param.header.string('file-token') token: string,
+    @param.path.string('ref') ref: string,
+  ) {
     /* Get request data from redis */
     let reuqestStr = await this.redis.client.GET(token);
     const requestData = RequestToken.toJSON(reuqestStr);
-    if (requestData.status !== EnumRequestTokenStatus.NONE) {
-      throw new HttpErrors.UnprocessableEntity();
+    if (
+      requestData.status !== EnumRequestTokenStatus.NONE ||
+      requestData.ref !== ref
+    ) {
+      throw new HttpErrors.UnprocessableEntity('Invalid Reference or Status');
     }
 
     await this.updateRequestData(

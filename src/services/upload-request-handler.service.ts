@@ -15,7 +15,12 @@ export class UploadRequestHandlerService {
     @inject(FileService.REDIS_SERVICE) private redisService: RedisService,
   ) {}
 
-  async checkHeader(request: Request, field: string, files: UploadFileItem[]) {
+  async checkHeader(
+    request: Request,
+    ref: string,
+    field: string,
+    files: UploadFileItem[],
+  ) {
     /* Check file */
     if (files.length === 0) {
       throw new HttpErrors.UnprocessableEntity('Invalid uploaded file');
@@ -31,9 +36,12 @@ export class UploadRequestHandlerService {
     const requestData = RequestToken.toJSON(requestStr || '{}');
     // trace(requestData);
 
-    if (requestData.status !== EnumRequestTokenStatus.NONE) {
+    if (
+      requestData.status !== EnumRequestTokenStatus.NONE ||
+      requestData.ref !== ref
+    ) {
       this.removeFiles(files);
-      throw new HttpErrors.UnprocessableEntity('Invalid Token');
+      throw new HttpErrors.UnprocessableEntity('Invalid Token or Reference');
     }
 
     const acceptableField = requestData.allowed_files.find(x => x === field);
