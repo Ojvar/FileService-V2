@@ -48,6 +48,7 @@ export class FileServiceApplication extends BootMixin(
     /* Config */
     this.onStart(async () => {
       this.bind(FileService.SERVER_URL).to(String(this.restServer.url));
+      await this.connectToRedis();
     });
     this.configApp(options);
 
@@ -69,10 +70,6 @@ export class FileServiceApplication extends BootMixin(
   }
 
   configApp(options: ApplicationConfig) {
-    this.onStart(async () => {
-      await this.connectToRedis();
-    });
-
     this.component(KCAuthenticationComponent);
 
     /* Set upload destination folder */
