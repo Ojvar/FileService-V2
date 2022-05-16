@@ -104,7 +104,7 @@ export class TokenController extends BaseController {
     @repository(FileRepository) fileRepository: FileRepository,
   ) {
     /* Get request data from redis */
-    let reuqestStr = await this.redis.client.GET(token);
+    const reuqestStr = await this.redis.client.GET(token);
     const requestData = RequestToken.toJSON(reuqestStr);
     if (
       requestData.status !== EnumRequestTokenStatus.NONE ||
@@ -114,27 +114,28 @@ export class TokenController extends BaseController {
     }
 
     /* Save to database and update requestData */
-    const keys = Object.keys(requestData.uploaded_files);
-    for (const key of keys) {
-      try {
-        const file = requestData.uploaded_files[key];
+    if (requestData.uploaded_files) {
+      const keys = Object.keys(requestData.uploaded_files);
+      for (const key of keys) {
+        try {
+          const file = requestData.uploaded_files[key];
+          if (!!file.id) {
+            continue;
+          }
 
-        if (!!file.id) {
-          continue;
+          const savedFile = await fileRepository.create({
+            filename: file.filename,
+            original_name: file.originalname,
+            mimetype: file.mimetype,
+            size: file.size,
+            uploaded: {at: requestData.created_at, by: requestData.user_id},
+          });
+
+          requestData.uploaded_files[key].id = savedFile.getId();
+        } catch (err) {
+          /* TODO: LOG INTO LOGGER SERVICE */
+          console.error(err);
         }
-
-        const savedFile = await fileRepository.create({
-          filename: file.filename,
-          original_name: file.originalname,
-          mimetype: file.mimetype,
-          size: file.size,
-          uploaded: {at: requestData.created_at, by: requestData.user_id},
-        });
-
-        requestData.uploaded_files[key].id = savedFile.getId();
-      } catch (err) {
-        /* TODO: LOG INTO LOGGER SERVICE */
-        console.error(err);
       }
     }
 

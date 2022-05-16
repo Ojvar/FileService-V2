@@ -55,7 +55,7 @@ export class RequestToken extends Model {
   }
 
   static toJSON(dataStr: string | null | undefined): RequestToken {
-    return new RequestToken(JSON.parse(dataStr ?? '{}'));
+    return new RequestToken(JSON.parse(dataStr || '{}'));
   }
 }
 

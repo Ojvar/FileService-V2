@@ -1,4 +1,4 @@
-import {inject, intercept} from '@loopback/core';
+import {inject} from '@loopback/core';
 import {
   get,
   HttpErrors,
@@ -10,7 +10,6 @@ import {
 import {existsSync} from 'fs';
 // import debugFactory from 'debug';
 import path from 'path';
-import {protect} from '../interceptors';
 import {FileService} from '../keys';
 
 // const trace = debugFactory('FileService:DownloadController');
@@ -20,7 +19,8 @@ export class DownloadController {
     @inject(FileService.STORAGE_DIRECTORY) private storageDirectory: string,
   ) {}
 
-  @intercept(protect('realm:no-body'))
+  /* TODO: UNCOMMENT INTECEPTOR AFTER TEST */
+  // @intercept(protect('realm:no-body'))
   @get('/file/{filename}')
   @oas.response.file()
   downloadFile(
