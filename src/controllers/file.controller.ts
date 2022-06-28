@@ -13,8 +13,7 @@ import {
   ResponseObject,
   RestBindings,
 } from '@loopback/rest';
-import {FILE_DTO} from 'qeng-common';
-import {getServerUrl} from '../helpers';
+import {FILE_DTO, getServerUrl} from 'qeng-common';
 // import debugFactory from 'debug';
 import {protect} from '../interceptors';
 import {FileService} from '../keys';
