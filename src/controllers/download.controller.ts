@@ -19,8 +19,7 @@ export class DownloadController {
     @inject(FileService.STORAGE_DIRECTORY) private storageDirectory: string,
   ) {}
 
-  /* TODO: UNCOMMENT INTECEPTOR AFTER TEST */
-  // @intercept(protect('realm:no-body'))
+  @intercept(protect('realm:no-body'))
   @get('/file/{filename}')
   @oas.response.file()
   downloadFile(
