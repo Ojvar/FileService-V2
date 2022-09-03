@@ -1,4 +1,4 @@
-import {inject} from '@loopback/core';
+import {inject, intercept} from '@loopback/core';
 import {
   get,
   HttpErrors,
@@ -10,6 +10,7 @@ import {
 import {existsSync} from 'fs';
 // import debugFactory from 'debug';
 import path from 'path';
+import {protect} from 'qeng-common';
 import {FileService} from '../keys';
 
 // const trace = debugFactory('FileService:DownloadController');
