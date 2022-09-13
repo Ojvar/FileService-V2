@@ -1,9 +1,9 @@
 # Check out https://hub.docker.com/_/node to select a new base image
-FROM knode0.qeng.ir:5000/node:16-slim
+FROM knode0.qeng.ir:5000/node:18-slim
 
 ARG NPM_REGISTRY=http://knode0.qeng.ir:4873/
 
-#RUN npm i -g npm@latest
+RUN npm i -g npm@latest
 
 # Set to a non-root built-in user `node`
 USER node
@@ -22,7 +22,7 @@ COPY --chown=node package*.json ./
 RUN npm set registry $NPM_REGISTRY
 
 # Install
-RUN npm install --force --loglevel verbose
+RUN npm install --loglevel verbose
 
 # Bundle app source code
 COPY --chown=node . .
