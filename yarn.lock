@@ -3723,10 +3723,10 @@ punycode@^2.1.0:
   resolved "http://knode0.qeng.ir:4873/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
 
-qeng-common@^0.1.38:
-  version "0.1.38"
-  resolved "http://knode0.qeng.ir:4873/qeng-common/-/qeng-common-0.1.38.tgz#5d8557a40a7d6ac9203186a5a2e8e51b2f6e0a70"
-  integrity sha512-MfBaN53K+bKRg1B2aPt5+5EuZEzsCg34PRS4TSY+2uidjs7MfpHhJ1XvhMXLlGwu0ybvrQ9NjrK9bMMCuyhaGw==
+qeng-common@^0.1.42:
+  version "0.1.42"
+  resolved "http://knode0.qeng.ir:4873/qeng-common/-/qeng-common-0.1.42.tgz#1449614aa768c446929fa80e503408b27fe9138d"
+  integrity sha512-lKJAyeYQPENAPlCKYkEFxPHLoKw6tqnEXxdFiRSRc9Tnp73eJqXhXU7pdXIlz6M2fDupQocuskSlnmnA0X2a7A==
   dependencies:
     "@loopback/boot" "^5.0.3"
     "@loopback/core" "^4.0.3"
