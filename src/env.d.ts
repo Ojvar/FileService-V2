@@ -8,6 +8,8 @@ declare namespace NodeJS {
     SSL_KEY: string;
     SSL_CERT: string;
 
+    KEYCLOAK_URL: string;
+
     REDIS_URL: string;
     REDIS_USERNAME: string;
     REDIS_PASSWORD: string;

@@ -17,6 +17,7 @@ import {
 } from 'loopback-rabbitmq';
 import multer from 'multer';
 import path from 'path';
+import {COMMON_KEYS, COMMON_TYPES, KeycloakComponent} from 'qeng-common';
 import {RedisClientOptions} from 'redis';
 import {v4 as uuidV4} from 'uuid';
 import {KCAuthenticationComponent} from './components';
@@ -71,6 +72,12 @@ export class FileServiceApplication extends BootMixin(
 
   configApp(options: ApplicationConfig) {
     this.component(KCAuthenticationComponent);
+    this.component(KeycloakComponent);
+
+    /* Setup keycloak wrapper */
+    this.bind<Partial<COMMON_TYPES.RestDataSourceConfig>>(
+      COMMON_KEYS.KEYCLOAK_DATASOURCE_CONFIG,
+    ).to({baseURL: process.env.KEYCLOAK_URL});
 
     /* Set upload destination folder */
     const destination =

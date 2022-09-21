@@ -64,7 +64,7 @@
     "loopback-connector-mongodb": "^6.2.0",
     "loopback-rabbitmq": "^2.0.2",
     "multer": "^1.4.4",
-    "qeng-common": "^0.1.42",
+    "qeng-common": "^0.1.72",
     "redis": "^4.1.0",
     "tslib": "^2.0.0",
     "uuid": "^8.3.2"
