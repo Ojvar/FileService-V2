@@ -3,8 +3,10 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-import {ApplicationConfig, FileServiceApplication} from './application';
+import dotenv from 'dotenv';
+dotenv.config();
 
+import {ApplicationConfig, FileServiceApplication} from './application';
 export * from './application';
 
 export async function main(options: ApplicationConfig = {}) {

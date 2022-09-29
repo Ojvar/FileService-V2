@@ -5,6 +5,7 @@
 
 import {Client, expect} from '@loopback/testlab';
 import {FileServiceApplication} from '../..';
+import {FILE_SERVICE_KEYS} from '../../keys';
 import {setupApplication} from './test-helper';
 
 describe('PingController', () => {
@@ -14,13 +15,13 @@ describe('PingController', () => {
   before('setupApplication', async () => {
     ({app, client} = await setupApplication());
   });
-
   after(async () => {
     await app.stop();
   });
 
-  it('invokes GET /ping', async () => {
-    const res = await client.get('/ping?msg=world').expect(200);
-    expect(res.body).to.containEql({greeting: 'Hello from LoopBack'});
+  it('check redis is connected to server', async () => {
+    const redisService = app.getSync(FILE_SERVICE_KEYS.REDIS_SERVICE);
+    const {isOpen} = redisService;
+    expect(isOpen).equal(true);
   });
 });

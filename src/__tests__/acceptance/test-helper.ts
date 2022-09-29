@@ -3,12 +3,12 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-import {FileServiceApplication} from '../..';
 import {
+  Client,
   createRestAppClient,
   givenHttpServerConfig,
-  Client,
 } from '@loopback/testlab';
+import {FileServiceApplication} from '../..';
 
 export async function setupApplication(): Promise<AppWithClient> {
   const restConfig = givenHttpServerConfig({
@@ -25,9 +25,7 @@ export async function setupApplication(): Promise<AppWithClient> {
 
   await app.boot();
   await app.start();
-
   const client = createRestAppClient(app);
-
   return {app, client};
 }
 
