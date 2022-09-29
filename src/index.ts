@@ -26,6 +26,7 @@ if (require.main === module) {
   // Run the application
   const config = {
     basePath: process.env.BASE_PATH,
+    destination: process.env.STORAGE_DESTINATION,
     rest: {
       expressSettings: {
         'x-powered-by': !isProduction,
