@@ -30,7 +30,13 @@ export namespace FILE_MANAGER_SERVICE {
   @model({jsonSchema: {description: 'Get token request'}})
   export class GetTokenRequestDTO {
     @property.array(AllowedFile, {require: true}) allowed_files: AllowedFiles;
-    @property({type: 'date', required: false}) expire_at: ExpireTime;
+    @property({
+      type: 'number',
+      required: false,
+      jsonSchema: {description: 'Token expire time', type: 'number'},
+    })
+    expire_time: ExpireTime;
+
     @property({
       type: 'string',
       requird: true,

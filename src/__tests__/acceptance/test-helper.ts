@@ -19,12 +19,10 @@ export async function setupApplication(): Promise<AppWithClient> {
     // port: +process.env.PORT,
   });
 
-  const app = new FileServiceApplication({
-    rest: restConfig,
-  });
-
+  const app = new FileServiceApplication({rest: restConfig});
   await app.boot();
   await app.start();
+  /* TODO: BIND SERVCIES TO APPLICATION */
   const client = createRestAppClient(app);
   return {app, client};
 }

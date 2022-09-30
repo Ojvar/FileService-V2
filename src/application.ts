@@ -13,6 +13,7 @@ import {
 } from '@loopback/rest-explorer';
 import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
+import {FILE_SERVICE_KEYS} from './keys';
 import {MySequence} from './sequence';
 
 export {ApplicationConfig};
@@ -49,5 +50,14 @@ export class FileServiceApplication extends BootMixin(
 
   configApp() {
     /* Bind Redis Configuration */
+    this.bind(FILE_SERVICE_KEYS.REDIS_SERVICE_CONFIG).to({
+      socket: {
+        host: process.env.host ?? 'localhost',
+        port: +(process.env.port ?? '6379'),
+      },
+      username: process.env.REDIS_USERNAME,
+      password: process.env.REDIS_PASSWORD,
+      database: +(process.env.REDIS_DB ?? '0'),
+    });
   }
 }
