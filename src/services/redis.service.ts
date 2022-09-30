@@ -4,7 +4,6 @@ import {
   injectable,
   LifeCycleObserver,
   lifeCycleObserver,
-  Provider,
 } from '@loopback/core';
 import {HttpErrors} from '@loopback/rest';
 import debugFactory from 'debug';
@@ -19,13 +18,18 @@ import {
 import {FILE_SERVICE_KEYS} from '../keys';
 
 const trace = debugFactory('FileService:RedisService');
-export type Redis = RedisClientType<RedisModules, RedisFunctions, RedisScripts>;
+export type RedisClient = RedisClientType<
+  RedisModules,
+  RedisFunctions,
+  RedisScripts
+>;
 
-@injectable({scope: BindingScope.SINGLETON})
+@injectable({scope: BindingScope.APPLICATION})
 @lifeCycleObserver('services')
-export class RedisProvider implements Provider<Redis>, LifeCycleObserver {
-  private _client: null | Redis;
-  private get client(): Redis {
+export class RedisService implements LifeCycleObserver {
+  private _client: null | RedisClient;
+
+  get client(): RedisClient {
     if (this._client === null) {
       throw new HttpErrors.InternalServerError('RedisClient is null');
     }
@@ -50,10 +54,6 @@ export class RedisProvider implements Provider<Redis>, LifeCycleObserver {
   async disconnect() {
     trace('Disconnecting from redis server');
     await this.client.disconnect();
-  }
-
-  value(): Redis {
-    return this.client;
   }
 
   constructor(
