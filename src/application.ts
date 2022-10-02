@@ -12,6 +12,8 @@ import {
   RestExplorerComponent,
 } from '@loopback/rest-explorer';
 import {ServiceMixin} from '@loopback/service-proxy';
+import {ObjectId} from 'bson';
+import multer from 'multer';
 import path from 'path';
 import {FILE_SERVICE_KEYS} from './keys';
 import {MySequence} from './sequence';
@@ -49,6 +51,8 @@ export class FileServiceApplication extends BootMixin(
   }
 
   configApp() {
+    this.configMulter();
+
     /* Bind Redis Configuration */
     this.bind(FILE_SERVICE_KEYS.REDIS_SERVICE_CONFIG).to({
       socket: {
@@ -59,5 +63,20 @@ export class FileServiceApplication extends BootMixin(
       password: process.env.REDIS_PASSWORD,
       database: +(process.env.REDIS_DB ?? '0'),
     });
+  }
+
+  configMulter() {
+    const destination =
+      process.env.FILE_STORAGE ?? path.join(__dirname, '../.sandbox');
+    this.bind(FILE_SERVICE_KEYS.STORAGE_DIRECTORY).to(destination);
+
+    const multerOptions: multer.Options = {
+      limits: {fileSize: +(process.env.MAX_FILE_SIZE ?? '2097152')},
+      storage: multer.diskStorage({
+        destination,
+        filename: (req, file, cb) => cb(null, new ObjectId().toHexString()),
+      }),
+    };
+    this.configure(FILE_SERVICE_KEYS.FILE_UPLOAD_SERVICE).to(multerOptions);
   }
 }
