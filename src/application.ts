@@ -66,15 +66,19 @@ export class FileServiceApplication extends BootMixin(
   }
 
   configMulter() {
-    const destination =
-      process.env.FILE_STORAGE ?? path.join(__dirname, '../.sandbox');
+    const destination = path.resolve(
+      process.env.FILE_STORAGE || path.resolve('.sandbox'),
+    );
+    console.log(destination);
     this.bind(FILE_SERVICE_KEYS.STORAGE_DIRECTORY).to(destination);
 
     const multerOptions: multer.Options = {
       limits: {fileSize: +(process.env.MAX_FILE_SIZE ?? '2097152')},
       storage: multer.diskStorage({
         destination,
-        filename: (req, file, cb) => cb(null, new ObjectId().toHexString()),
+        filename: (req, file, cb) => {
+          cb(null, new ObjectId().toHexString());
+        },
       }),
     };
     this.configure(FILE_SERVICE_KEYS.FILE_UPLOAD_SERVICE).to(multerOptions);
