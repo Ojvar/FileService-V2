@@ -69,7 +69,6 @@ export class FileServiceApplication extends BootMixin(
     const destination = path.resolve(
       process.env.FILE_STORAGE || path.resolve('.sandbox'),
     );
-    console.log(destination);
     this.bind(FILE_SERVICE_KEYS.STORAGE_DIRECTORY).to(destination);
 
     const multerOptions: multer.Options = {
