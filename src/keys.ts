@@ -1,6 +1,6 @@
 import {BindingKey} from '@loopback/core';
 import {RedisClientOptions} from 'redis';
-import {FileManagerService, RedisClient} from './services';
+import {FileManagerService, FileService, RedisClient} from './services';
 import {FileUploadHandler} from './types';
 
 export namespace FILE_SERVICE_KEYS {
@@ -14,6 +14,9 @@ export namespace FILE_SERVICE_KEYS {
     'services.FileManagerService',
   );
   export const FILE_UPLOAD_SERVICE = BindingKey.create<FileUploadHandler>(
+    'services.FileUploadService',
+  );
+  export const FILE_SERVICE = BindingKey.create<FileService>(
     'services.FileService',
   );
   export const STORAGE_DIRECTORY =

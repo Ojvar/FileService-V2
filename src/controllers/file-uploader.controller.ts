@@ -1,9 +1,8 @@
 import {inject} from '@loopback/core';
 import {
-  HttpErrors,
+  param,
   post,
   Request,
-  RequestBody,
   requestBody,
   Response,
   RestBindings,
@@ -11,13 +10,10 @@ import {
 import {FILE_SERVICE_KEYS} from '../keys';
 import {FileUploadHandler} from '../types';
 
-type FilesList = {
-  files: object[];
-  body: RequestBody;
-};
+/* TODO: USE FILE-SERVICE SERVICE TO HANDLE UPLOADED FILE */
 
 export class FileUploaderController {
-  @post('/files', {
+  @post('/files/{token}/{user_id}', {
     tags: ['files', 'upload'],
     description: 'Upload files',
     summary: 'Upload files',
@@ -29,6 +25,12 @@ export class FileUploaderController {
     },
   })
   async fileUpload(
+    @param.path.string('user_id', {
+      description: 'User id /// Temporary - it should be removed after tests',
+    })
+    userId: string,
+    @param.path.string('token', {description: 'FileUpload token'})
+    token: string,
     @requestBody.file({
       description: 'multipart/form-data value.',
       required: true,
@@ -40,8 +42,9 @@ export class FileUploaderController {
         if (err) {
           return reject(err);
         }
-        const {file, body} = getSingleFile(request);
-        resolve(file);
+
+        /* Return extracted file data */
+        resolve(getSingleFile(request));
       });
     });
   }
@@ -51,22 +54,6 @@ export class FileUploaderController {
     @inject(FILE_SERVICE_KEYS.FILE_UPLOAD_SERVICE)
     private handler: FileUploadHandler,
   ) {}
-}
-
-function getSingleFile(request: Request) {
-  const uploadedFile = request.file;
-  if (!uploadedFile) {
-    throw new HttpErrors.UnprocessableEntity('Empty file');
-  }
-
-  const file = {
-    fieldname: uploadedFile.fieldname,
-    id: uploadedFile.filename,
-    mimetype: uploadedFile.mimetype,
-    originalname: uploadedFile.originalname,
-    size: uploadedFile.size,
-  };
-  return {file, body: request.body};
 }
 
 // function getFiles(request: Request): FilesList {

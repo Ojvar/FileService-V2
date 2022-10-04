@@ -13,7 +13,7 @@ import {FileUploadHandler} from '../types';
   scope: BindingScope.TRANSIENT,
   tags: {[ContextTags.KEY]: FILE_SERVICE_KEYS.FILE_UPLOAD_SERVICE},
 })
-export class FileServiceProvider implements Provider<FileUploadHandler> {
+export class FileUploadServiceProvider implements Provider<FileUploadHandler> {
   constructor(@config() private options: multer.Options = {}) {
     if (!this.options.storage) {
       this.options.storage = multer.memoryStorage();
