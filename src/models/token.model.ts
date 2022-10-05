@@ -76,13 +76,16 @@ export type UploadedFiles = UploadedFile[];
 export class Token extends Model {
   isValid(): Boolean {
     /* TODO: CHECK TOKEN STATUS TOO */
-    return this.expire_time < +new Date();
+    return this.expire_time >= +new Date();
   }
-  checkAllowedFile(field: string) {
-    return this.allowed_files.findIndex(x => x.field === field) > -1;
+  checkAllowedFile(file: UploadedFile): boolean {
+    const index = this.allowed_files.findIndex(
+      x => x.field === file.fieldname && x.max_size >= file.size,
+    );
+    return index > -1;
   }
-  getUploadedFile(field: string): UploadedFile | undefined {
-    return this.uploaded_files.find(x => x.fieldname === field);
+  getUploadedFile(file: UploadedFile): UploadedFile | undefined {
+    return this.uploaded_files.find(x => x.fieldname === file.fieldname);
   }
 
   static fromTokenRequest(data: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO) {

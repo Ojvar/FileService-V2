@@ -24,13 +24,15 @@ export class FileManagerService {
       await this.removeFile(uploadedFile);
       throw new HttpErrors.UnprocessableEntity('Invalid token');
     }
-    if (!credential.checkAllowedFile(field)) {
+    if (!credential.checkAllowedFile(uploadedFile)) {
       await this.removeFile(uploadedFile);
-      throw new HttpErrors.UnprocessableEntity('Invalid field name');
+      throw new HttpErrors.UnprocessableEntity(
+        'Invalid field-name or file-size',
+      );
     }
 
     /* Remove old uploaded file, and replace new file */
-    await this.removeFileIfAlreadyUploaded(credential, field);
+    await this.removeFileIfAlreadyUploaded(credential, uploadedFile);
     credential.addOrReplaceUploadedItem(uploadedFile);
 
     /* Update redis */
@@ -41,9 +43,9 @@ export class FileManagerService {
 
   async removeFileIfAlreadyUploaded(
     credential: Token,
-    field: string,
+    uploadedFile: UploadedFile,
   ): Promise<void> {
-    const oldUploadedFile = credential.getUploadedFile(field);
+    const oldUploadedFile = credential.getUploadedFile(uploadedFile);
     if (oldUploadedFile) {
       return this.removeFile(oldUploadedFile);
     }
