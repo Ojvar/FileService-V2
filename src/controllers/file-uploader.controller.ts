@@ -1,11 +1,12 @@
 import {inject, intercept} from '@loopback/core';
 import {param, post, Request, requestBody} from '@loopback/rest';
 import {FileHandlerInterceptor} from '../interceptors';
+import {UploadedFile} from '../models';
 import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
 export class FileUploaderController {
   @intercept(FileHandlerInterceptor.BINDING_KEY)
-  @post('/files/{token}/{user_id}', {
+  @post('/files/{token}/{field}/{user_id}', {
     tags: ['file-upload'],
     description: 'Upload files',
     summary: 'Upload files',
@@ -23,14 +24,15 @@ export class FileUploaderController {
     userId: string,
     @param.path.string('token', {description: 'FileUpload token'})
     token: string,
+    @param.path.string('field', {description: 'Field name'})
+    field: string,
     @requestBody.file({
       description: 'multipart/form-data value.',
       required: true,
     })
     request: Request,
-  ): Promise<object> {
-    const data = this.fileManagerService.getUploadedFile(request).file;
-    return data;
+  ): Promise<UploadedFile> {
+    return this.fileManagerService.uploadFile(userId, token, field, request);
   }
 
   constructor(
