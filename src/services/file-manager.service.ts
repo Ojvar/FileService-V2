@@ -6,6 +6,7 @@ import {FILE_MANAGER_SERVICE_DTO} from '../dto';
 import {STORAGE_DIRECTORY} from '../interceptors';
 import {Token, UploadedFile} from '../models';
 import {RedisService, REDIS_SERVICE} from './redis.service';
+import {TokenService, TOKEN_SERVICE} from './token.service';
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
@@ -97,6 +98,7 @@ export class FileManagerService {
 
   constructor(
     @inject(STORAGE_DIRECTORY) private storagePath: string,
+    @inject(TOKEN_SERVICE) private tokenService: TokenService,
     @inject(REDIS_SERVICE) private redisService: RedisService,
   ) {}
 }
