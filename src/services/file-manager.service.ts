@@ -4,9 +4,12 @@ import {unlink} from 'fs/promises';
 import path from 'path';
 import {FILE_MANAGER_SERVICE_DTO} from '../dto';
 import {STORAGE_DIRECTORY} from '../interceptors';
-import {Token, UploadedFile} from '../models';
+import {Credential, UploadedFile} from '../models';
+import {
+  CredentialManagerService,
+  CREDENTIAL_MANAGER_SERVICE,
+} from './credential.manager.service';
 import {RedisService, REDIS_SERVICE} from './redis.service';
-import {TokenService, TOKEN_SERVICE} from './token.service';
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
@@ -43,7 +46,7 @@ export class FileManagerService {
   }
 
   async removeFileIfAlreadyUploaded(
-    credential: Token,
+    credential: Credential,
     uploadedFile: UploadedFile,
   ): Promise<void> {
     const oldUploadedFile = credential.getUploadedFile(uploadedFile);
@@ -57,17 +60,20 @@ export class FileManagerService {
     return unlink(filePath);
   }
 
-  async getCredential(userId: string, token: string): Promise<null | Token> {
+  async getCredential(
+    userId: string,
+    token: string,
+  ): Promise<null | Credential> {
     const key = `${token}:${userId}`;
     const rawData = await this.redisService.client.GET(key);
     if (!rawData) {
       return null;
     }
-    return new Token(JSON.parse(rawData));
+    return new Credential(JSON.parse(rawData));
   }
 
   /* Save credential into redis database */
-  async storeCredential(credential: Token): Promise<string | null> {
+  async storeCredential(credential: Credential): Promise<string | null> {
     const redisKey = `${credential.id}:${credential.allowed_user}`;
     return this.redisService.client.SET(redisKey, JSON.stringify(credential));
   }
@@ -76,9 +82,10 @@ export class FileManagerService {
   async getToken(
     data: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO,
   ): Promise<FILE_MANAGER_SERVICE_DTO.GetTokenResponseDTO> {
-    const token = Token.fromTokenRequest(data);
-    await this.storeCredential(token);
-    return {id: token.id, expire_at: token.expire_time};
+    const credential = Credential.fromTokenRequest(data);
+    await this.storeCredential(credential);
+    await this.tokenService.addCredential(credential);
+    return {id: credential.id, expire_at: credential.expire_time};
   }
 
   /* Get uploaded file */
@@ -98,7 +105,8 @@ export class FileManagerService {
 
   constructor(
     @inject(STORAGE_DIRECTORY) private storagePath: string,
-    @inject(TOKEN_SERVICE) private tokenService: TokenService,
+    @inject(CREDENTIAL_MANAGER_SERVICE)
+    private tokenService: CredentialManagerService,
     @inject(REDIS_SERVICE) private redisService: RedisService,
   ) {}
 }

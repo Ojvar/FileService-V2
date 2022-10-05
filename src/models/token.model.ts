@@ -73,7 +73,7 @@ export class UploadedFile {
 export type UploadedFiles = UploadedFile[];
 
 @model()
-export class Token extends Model {
+export class Credential extends Model {
   isValid(): Boolean {
     /* TODO: CHECK TOKEN STATUS TOO */
     return this.expire_time >= +new Date();
@@ -89,7 +89,7 @@ export class Token extends Model {
   }
 
   static fromTokenRequest(data: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO) {
-    return new Token({
+    return new Credential({
       // uploaded_files: [],
       allowed_files: [...data.allowed_files],
       allowed_user: data.allowed_user,
@@ -111,7 +111,7 @@ export class Token extends Model {
     return index;
   }
 
-  constructor(data?: Partial<Token>) {
+  constructor(data?: Partial<Credential>) {
     super(data);
 
     /* Set default data */
@@ -162,4 +162,4 @@ export interface TokenRelations {
   // describe navigational properties here
 }
 
-export type TokenWithRelations = Token & TokenRelations;
+export type TokenWithRelations = Credential & TokenRelations;
