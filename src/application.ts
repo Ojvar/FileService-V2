@@ -5,6 +5,7 @@
 
 import {BootMixin} from '@loopback/boot';
 import {ApplicationConfig} from '@loopback/core';
+import {CronComponent} from '@loopback/cron';
 import {RepositoryMixin} from '@loopback/repository';
 import {RestApplication} from '@loopback/rest';
 import {
@@ -15,6 +16,7 @@ import {ServiceMixin} from '@loopback/service-proxy';
 import {ObjectId} from 'bson';
 import multer from 'multer';
 import path from 'path';
+import {CronJobComponent} from './components';
 import {FileHandlerInterceptor, STORAGE_DIRECTORY} from './interceptors';
 import {MySequence} from './sequence';
 import {REDIS_SERVICE_CONFIG} from './services';
@@ -50,8 +52,14 @@ export class FileServiceApplication extends BootMixin(
   }
 
   configApp() {
+    this.configCronJobs();
     this.configMulter();
     this.configRedis();
+  }
+
+  private configCronJobs() {
+    this.component(CronComponent);
+    this.component(CronJobComponent);
   }
 
   private configRedis() {
