@@ -15,8 +15,9 @@ import {ServiceMixin} from '@loopback/service-proxy';
 import {ObjectId} from 'bson';
 import multer from 'multer';
 import path from 'path';
-import {FILE_SERVICE_KEYS} from './keys';
+import {FileHandlerInterceptor, STORAGE_DIRECTORY} from './interceptors';
 import {MySequence} from './sequence';
+import {REDIS_SERVICE_CONFIG} from './services';
 
 export {ApplicationConfig};
 
@@ -37,10 +38,8 @@ export class FileServiceApplication extends BootMixin(
     this.component(RestExplorerComponent);
 
     this.projectRoot = __dirname;
-    // Customize @loopback/boot Booter Conventions here
     this.bootOptions = {
       controllers: {
-        // Customize ControllerBooter Conventions here
         dirs: ['controllers'],
         extensions: ['.controller.js'],
         nested: true,
@@ -52,34 +51,32 @@ export class FileServiceApplication extends BootMixin(
 
   configApp() {
     this.configMulter();
+    this.configRedis();
+  }
 
-    /* Bind Redis Configuration */
-    this.bind(FILE_SERVICE_KEYS.REDIS_SERVICE_CONFIG).to({
-      socket: {
-        host: process.env.host ?? 'localhost',
-        port: +(process.env.port ?? '6379'),
-      },
-      username: process.env.REDIS_USERNAME,
-      password: process.env.REDIS_PASSWORD,
-      database: +(process.env.REDIS_DB ?? '0'),
+  private configRedis() {
+    const {REDIS_HOST, REDIS_DB, REDIS_PORT, REDIS_USERNAME, REDIS_PASSWORD} =
+      process.env;
+    this.bind(REDIS_SERVICE_CONFIG).to({
+      socket: {host: REDIS_HOST ?? 'localhost', port: +(REDIS_PORT ?? '6379')},
+      username: REDIS_USERNAME,
+      password: REDIS_PASSWORD,
+      database: +(REDIS_DB ?? '0'),
     });
   }
 
   configMulter() {
-    const destination = path.resolve(
-      process.env.FILE_STORAGE || path.resolve('.sandbox'),
-    );
-    this.bind(FILE_SERVICE_KEYS.STORAGE_DIRECTORY).to(destination);
+    const {FILE_STORAGE, MAX_FILE_SIZE} = process.env;
+    const destination = path.resolve(FILE_STORAGE || path.resolve('.sandbox'));
+    this.bind(STORAGE_DIRECTORY).to(destination);
 
     const multerOptions: multer.Options = {
-      limits: {fileSize: +(process.env.MAX_FILE_SIZE ?? '2097152')},
+      limits: {fileSize: +(MAX_FILE_SIZE ?? '2097152')},
       storage: multer.diskStorage({
         destination,
-        filename: (req, file, cb) => {
-          cb(null, new ObjectId().toHexString());
-        },
+        filename: (req, file, cb) => cb(null, new ObjectId().toHexString()),
       }),
     };
-    this.configure(FILE_SERVICE_KEYS.FILE_UPLOAD_SERVICE).to(multerOptions);
+    this.configure(FileHandlerInterceptor.BINDING_KEY).to(multerOptions);
   }
 }

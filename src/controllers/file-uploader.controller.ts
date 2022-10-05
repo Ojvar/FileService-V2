@@ -1,20 +1,12 @@
-import {inject} from '@loopback/core';
-import {
-  param,
-  post,
-  Request,
-  requestBody,
-  Response,
-  RestBindings,
-} from '@loopback/rest';
-import {FILE_SERVICE_KEYS} from '../keys';
-import {FileUploadHandler} from '../types';
-
-/* TODO: USE FILE-SERVICE SERVICE TO HANDLE UPLOADED FILE */
+import {inject, intercept} from '@loopback/core';
+import {param, post, Request, requestBody} from '@loopback/rest';
+import {FileHandlerInterceptor} from '../interceptors';
+import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
 export class FileUploaderController {
+  @intercept(FileHandlerInterceptor.BINDING_KEY)
   @post('/files/{token}/{user_id}', {
-    tags: ['files', 'upload'],
+    tags: ['file-upload'],
     description: 'Upload files',
     summary: 'Upload files',
     responses: {
@@ -37,42 +29,12 @@ export class FileUploaderController {
     })
     request: Request,
   ): Promise<object> {
-    return new Promise<object>((resolve, reject) => {
-      this.handler(request, this.response, (err: unknown) => {
-        if (err) {
-          return reject(err);
-        }
-
-        /* Return extracted file data */
-        resolve(getSingleFile(request));
-      });
-    });
+    this.fileManagerService.getUploadedFile(request);
+    return {};
   }
 
   constructor(
-    @inject(RestBindings.Http.RESPONSE) private response: Response,
-    @inject(FILE_SERVICE_KEYS.FILE_UPLOAD_SERVICE)
-    private handler: FileUploadHandler,
+    @inject(FILE_MANAGER_SERVICE)
+    private fileManagerService: FileManagerService,
   ) {}
 }
-
-// function getFiles(request: Request): FilesList {
-//   const uploadedFiles = request.files;
-//   const mapper = (f: globalThis.Express.Multer.File) => ({
-//     fieldname: f.fieldname,
-//     id: f.filename,
-//     mimetype: f.mimetype,
-//     originalname: f.originalname,
-//     size: f.size,
-//   });
-
-//   let files: object[] = [];
-//   if (Array.isArray(uploadedFiles)) {
-//     files = uploadedFiles.map(mapper);
-//   } else {
-//     for (const filename in uploadedFiles) {
-//       files.push(...uploadedFiles[filename].map(mapper));
-//     }
-//   }
-//   return {files, body: request.body};
-// }

@@ -1,4 +1,5 @@
 import {
+  BindingKey,
   BindingScope,
   config,
   injectable,
@@ -15,9 +16,9 @@ import {
   RedisModules,
   RedisScripts,
 } from 'redis';
-import {FILE_SERVICE_KEYS} from '../keys';
 
 const trace = debugFactory('FileService:RedisService');
+
 export type RedisClient = RedisClientType<
   RedisModules,
   RedisFunctions,
@@ -37,13 +38,18 @@ export class RedisService implements LifeCycleObserver {
   }
 
   start() {
-    trace('started');
-    this.connect().catch(console.error);
+    this.connect()
+      .catch(err => {
+        console.error(err);
+        throw new HttpErrors.InternalServerError('Redis Connection Failed');
+      })
+      .then(() => trace('started'));
   }
 
   stop() {
-    trace('stopped');
-    this.disconnect().catch(console.error);
+    this.disconnect()
+      .catch(console.error)
+      .then(() => trace('stopped'));
   }
 
   async connect() {
@@ -57,10 +63,17 @@ export class RedisService implements LifeCycleObserver {
   }
 
   constructor(
-    @config(FILE_SERVICE_KEYS.REDIS_SERVICE_CONFIG, {optional: true})
+    @config(REDIS_SERVICE_CONFIG, {optional: true})
     private configs: RedisClientOptions = {},
   ) {
     trace(this.configs);
     this._client = createClient(this.configs);
   }
 }
+
+export const REDIS_SERVICE_CONFIG = BindingKey.create<RedisClientOptions>(
+  'services.config.RedisService',
+);
+export const REDIS_SERVICE = BindingKey.create<RedisClient>(
+  'services.RedisService',
+);

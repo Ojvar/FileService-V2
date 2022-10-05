@@ -1,7 +1,7 @@
 import {model, property} from '@loopback/repository';
 import {ExpireTime} from '../types';
 
-export namespace FILE_MANAGER_SERVICE {
+export namespace FILE_MANAGER_SERVICE_DTO {
   @model({jsonSchema: {description: 'Allowed file item'}})
   export class AllowedFile {
     @property({

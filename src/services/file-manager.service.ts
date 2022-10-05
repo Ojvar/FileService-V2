@@ -1,14 +1,14 @@
-import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
-import {FILE_MANAGER_SERVICE} from '../dto';
-import {FILE_SERVICE_KEYS} from '../keys';
+import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
+import {HttpErrors, Request} from '@loopback/rest';
+import {FILE_MANAGER_SERVICE_DTO} from '../dto';
 import {Token} from '../models';
-import {RedisService} from './redis.service';
+import {RedisService, REDIS_SERVICE} from './redis.service';
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
   async getToken(
-    data: FILE_MANAGER_SERVICE.GetTokenRequestDTO,
-  ): Promise<FILE_MANAGER_SERVICE.GetTokenResponseDTO> {
+    data: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO,
+  ): Promise<FILE_MANAGER_SERVICE_DTO.GetTokenResponseDTO> {
     /* Generate new token */
     const token = new Token({
       allowed_files: data.allowed_files,
@@ -25,7 +25,27 @@ export class FileManagerService {
     return {id: token.id, expire_at: token.expire_time};
   }
 
-  constructor(
-    @inject(FILE_SERVICE_KEYS.REDIS_SERVICE) private redisService: RedisService,
-  ) {}
+  /* TODO: ADD RESULT TYPE */
+  getUploadedFile(request: Request) {
+    const uploadedFile = request.file;
+    if (!uploadedFile) {
+      throw new HttpErrors.UnprocessableEntity('Empty file');
+    }
+
+    const {fieldname, mimetype, originalname, size} = uploadedFile;
+    const file = {
+      id: uploadedFile.filename,
+      fieldname,
+      mimetype,
+      originalname,
+      size,
+    };
+    return {file, body: request.body};
+  }
+
+  constructor(@inject(REDIS_SERVICE) private redisService: RedisService) {}
 }
+
+export const FILE_MANAGER_SERVICE = BindingKey.create<FileManagerService>(
+  'services.FileManagerService',
+);
