@@ -7,6 +7,7 @@ export class TokenController {
   @post('/token', {
     description: 'Generate a file upload certificate and return file-token',
     summary: 'Generate a new file-upload certificate',
+    tags: ['token'],
     responses: {
       200: {
         description: 'Genereated token data',
