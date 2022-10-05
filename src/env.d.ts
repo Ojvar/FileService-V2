@@ -7,5 +7,8 @@ declare namespace NodeJS {
     REDIS_DB: string;
     REDIS_USERNAME: string;
     REDIS_PASSWORD: string;
+
+    FILE_STORAGE: string;
+    MAX_FILE_SIZE: number;
   }
 }
