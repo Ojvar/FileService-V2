@@ -25,7 +25,12 @@ export class FileHandlerInterceptor implements Provider<Interceptor> {
   ) {
     const request = invocationCtx.getSync(RestBindings.Http.REQUEST);
     const response = invocationCtx.getSync(RestBindings.Http.RESPONSE);
-    return multer(this.options).single('file')(request, response, next);
+
+    return new Promise((resolve, reject) =>
+      multer(this.options).single('file')(request, response, () =>
+        resolve(next()),
+      ),
+    );
   }
 
   constructor(@config() private options: multer.Options = {}) {

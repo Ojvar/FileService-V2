@@ -29,8 +29,8 @@ export class FileUploaderController {
     })
     request: Request,
   ): Promise<object> {
-    this.fileManagerService.getUploadedFile(request);
-    return {};
+    const data = this.fileManagerService.getUploadedFile(request).file;
+    return data;
   }
 
   constructor(
