@@ -1,5 +1,18 @@
-import {BindingKey, BindingScope, ContextTags} from '@loopback/core';
+import {BindingKey, BindingScope, ContextTags, inject} from '@loopback/core';
 import {CronJob, cronJob} from '@loopback/cron';
+import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
+
+export type PruneExpiredCredentialsCronJobConfig = {
+  cronTime: string;
+};
+export const PRUNE_EXPIRED_CREDENTIALS_CRONJOB =
+  BindingKey.create<PruneExpiredCredentialsCronJob>(
+    'cronjobs.PruneExpiredCredentialsCronJob',
+  );
+export const PRUNE_EXPIRED_CREDENTIALS_CRONJOB_CONFIG =
+  BindingKey.create<PruneExpiredCredentialsCronJobConfig>(
+    'cronjobs.config.PruneExpiredCredentialsCronJob',
+  );
 
 @cronJob({
   scope: BindingScope.TRANSIENT,
@@ -9,23 +22,17 @@ import {CronJob, cronJob} from '@loopback/cron';
   },
 })
 export class PruneExpiredCredentialsCronJob extends CronJob {
-  constructor() {
+  constructor(
+    @inject(PRUNE_EXPIRED_CREDENTIALS_CRONJOB_CONFIG)
+    private configs: PruneExpiredCredentialsCronJobConfig,
+    @inject(FILE_MANAGER_SERVICE)
+    private fileManagerService: FileManagerService,
+  ) {
     super({
       name: PruneExpiredCredentialsCronJob.name,
-      cronTime: CRONJOB_INTERVAL,
+      cronTime: configs.cronTime,
       start: true,
-      onTick: () => {
-        console.log('this is triggred');
-      },
+      onTick: async () => fileManagerService.pruneExpiredCredentials(),
     });
   }
 }
-
-export const PRUNE_EXPIRED_CREDENTIALS_CRONJOB =
-  BindingKey.create<PruneExpiredCredentialsCronJob>(
-    'cronjobs.PruneExpiredCredentialsCronJob',
-  );
-
-/* TODO: THIS SHOULD BE LOADED FROM .ENV */
-/* EVERY 5 MINUTES */
-export const CRONJOB_INTERVAL = `0 */5 * * * *`;

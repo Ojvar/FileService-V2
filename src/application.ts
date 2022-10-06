@@ -17,9 +17,13 @@ import {ObjectId} from 'bson';
 import multer from 'multer';
 import path from 'path';
 import {CronJobComponent} from './components';
+import {PRUNE_EXPIRED_CREDENTIALS_CRONJOB_CONFIG} from './crontabs';
 import {FileHandlerInterceptor, STORAGE_DIRECTORY} from './interceptors';
 import {MySequence} from './sequence';
-import {REDIS_SERVICE_CONFIG} from './services';
+import {
+  CREDENTIAL_MANAGER_SERVICE_CONFIG,
+  REDIS_SERVICE_CONFIG,
+} from './services';
 
 export {ApplicationConfig};
 
@@ -52,14 +56,27 @@ export class FileServiceApplication extends BootMixin(
   }
 
   configApp() {
+    this.configCredentialManager();
     this.configCronJobs();
     this.configMulter();
     this.configRedis();
   }
 
+  private configCredentialManager() {
+    const {CREDENTIAL_MANAGER_BUCKET_INTERVAL} = process.env;
+    this.bind(CREDENTIAL_MANAGER_SERVICE_CONFIG).to({
+      bucketInterval: +CREDENTIAL_MANAGER_BUCKET_INTERVAL * 1000,
+    });
+  }
+
   private configCronJobs() {
     this.component(CronComponent);
     this.component(CronJobComponent);
+
+    const {PRUNE_EXPIRED_CREDENTIALS_CRON_TIME} = process.env;
+    this.bind(PRUNE_EXPIRED_CREDENTIALS_CRONJOB_CONFIG).to({
+      cronTime: PRUNE_EXPIRED_CREDENTIALS_CRON_TIME,
+    });
   }
 
   private configRedis() {

@@ -13,6 +13,10 @@ import {RedisService, REDIS_SERVICE} from './redis.service';
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
+  async pruneExpiredCredentials() {
+    return this.credentialManagerService.pruneLastExpiredEntry();
+  }
+
   async uploadFile(
     userId: string,
     token: string,
@@ -23,6 +27,7 @@ export class FileManagerService {
     const uploadedFile = this.getUploadedFile(request);
     uploadedFile.fieldname = field;
 
+    /* Fetch and Validate credential */
     const credential = await this.getCredential(userId, token);
     if (!credential?.isValid()) {
       await this.removeFile(uploadedFile);
@@ -64,7 +69,7 @@ export class FileManagerService {
     userId: string,
     token: string,
   ): Promise<null | Credential> {
-    const key = `${token}:${userId}`;
+    const key = Credential.generateKey(token, userId);
     const rawData = await this.redisService.client.GET(key);
     if (!rawData) {
       return null;
@@ -74,8 +79,10 @@ export class FileManagerService {
 
   /* Save credential into redis database */
   async storeCredential(credential: Credential): Promise<string | null> {
-    const redisKey = `${credential.id}:${credential.allowed_user}`;
-    return this.redisService.client.SET(redisKey, JSON.stringify(credential));
+    return this.redisService.client.SET(
+      credential.getKey(),
+      credential.toJsonString(),
+    );
   }
 
   /* Generate a new upload credential */
@@ -84,7 +91,7 @@ export class FileManagerService {
   ): Promise<FILE_MANAGER_SERVICE_DTO.GetTokenResponseDTO> {
     const credential = Credential.fromTokenRequest(data);
     await this.storeCredential(credential);
-    await this.tokenService.addCredential(credential);
+    await this.credentialManagerService.addCredential(credential);
     return {id: credential.id, expire_at: credential.expire_time};
   }
 
@@ -105,9 +112,9 @@ export class FileManagerService {
 
   constructor(
     @inject(STORAGE_DIRECTORY) private storagePath: string,
-    @inject(CREDENTIAL_MANAGER_SERVICE)
-    private tokenService: CredentialManagerService,
     @inject(REDIS_SERVICE) private redisService: RedisService,
+    @inject(CREDENTIAL_MANAGER_SERVICE)
+    private credentialManagerService: CredentialManagerService,
   ) {}
 }
 

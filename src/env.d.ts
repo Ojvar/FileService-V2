@@ -10,5 +10,8 @@ declare namespace NodeJS {
 
     FILE_STORAGE: string;
     MAX_FILE_SIZE: number;
+
+    PRUNE_EXPIRED_CREDENTIALS_CRON_TIME: string;
+    CREDENTIAL_MANAGER_BUCKET_INTERVAL: number;
   }
 }

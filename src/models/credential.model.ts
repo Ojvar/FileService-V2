@@ -74,9 +74,19 @@ export type UploadedFiles = UploadedFile[];
 
 @model()
 export class Credential extends Model {
+  toJsonString(): string {
+    return JSON.stringify(this);
+  }
+
+  getKey(): string {
+    return Credential.generateKey(this.id, this.allowed_user);
+  }
+
   isValid(): Boolean {
     /* TODO: CHECK TOKEN STATUS TOO */
-    return this.expire_time >= +new Date();
+    return (
+      this.expire_time >= +new Date() && this.status === EnumTokenStatus.NORMAL
+    );
   }
   checkAllowedFile(file: UploadedFile): boolean {
     const index = this.allowed_files.findIndex(
@@ -86,17 +96,6 @@ export class Credential extends Model {
   }
   getUploadedFile(file: UploadedFile): UploadedFile | undefined {
     return this.uploaded_files.find(x => x.fieldname === file.fieldname);
-  }
-
-  static fromTokenRequest(data: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO) {
-    return new Credential({
-      // uploaded_files: [],
-      allowed_files: [...data.allowed_files],
-      allowed_user: data.allowed_user,
-      expire_time: data.expire_time
-        ? +new Date() + data.expire_time * 1000
-        : undefined,
-    });
   }
 
   addOrReplaceUploadedItem(newUploadedFile: UploadedFile): number {
@@ -109,6 +108,21 @@ export class Credential extends Model {
       index = this.uploaded_files.push(newUploadedFile) - 1;
     }
     return index;
+  }
+
+  static generateKey(token: string, userId: string): string {
+    return `${token}:${userId}`;
+  }
+
+  static fromTokenRequest(data: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO) {
+    return new Credential({
+      // uploaded_files: [],
+      allowed_files: [...data.allowed_files],
+      allowed_user: data.allowed_user,
+      expire_time: data.expire_time
+        ? +new Date() + data.expire_time * 1000
+        : undefined,
+    });
   }
 
   constructor(data?: Partial<Credential>) {
