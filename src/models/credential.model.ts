@@ -74,6 +74,9 @@ export type UploadedFiles = UploadedFile[];
 
 @model()
 export class Credential extends Model {
+  static fromJsonString(data: string): Credential {
+    return new Credential(JSON.parse(data));
+  }
   toJsonString(): string {
     return JSON.stringify(this);
   }

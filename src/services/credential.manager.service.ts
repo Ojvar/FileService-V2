@@ -40,10 +40,14 @@ export class CredentialManagerService {
   }
 
   async removeCredential(credential: Credential) {
-    await this.redisService.client.SREM(
-      this.getRedisKey(credential.expire_time),
-      credential.getKey(),
-    );
+    const redisKey = credential.getKey();
+    return Promise.all([
+      this.redisService.client.SREM(
+        this.getRedisKey(credential.expire_time),
+        redisKey,
+      ),
+      this.redisService.client.DEL(redisKey),
+    ]);
   }
 
   async removeEntry(entryIndex: number) {

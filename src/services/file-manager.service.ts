@@ -4,15 +4,39 @@ import {unlink} from 'fs/promises';
 import path from 'path';
 import {FILE_MANAGER_SERVICE_DTO} from '../dto';
 import {STORAGE_DIRECTORY} from '../interceptors';
-import {Credential, UploadedFile} from '../models';
+import {Credential, File, UploadedFile} from '../models';
 import {
   CredentialManagerService,
   CREDENTIAL_MANAGER_SERVICE,
 } from './credential.manager.service';
+import {FileStorageService, FILE_STORAGE_SERVICE} from './file-storage.service';
 import {RedisService, REDIS_SERVICE} from './redis.service';
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
+  /* Commit a certificate */
+  async commit(token: string, userId: string): Promise<File[]> {
+    /* Fetch data from redis and validate credential */
+    const rawCredential = await this.redisService.client.GET(
+      Credential.generateKey(token, userId),
+    );
+    if (!rawCredential) {
+      throw new HttpErrors.UnprocessableEntity('Invalid token');
+    }
+    const credential = Credential.fromJsonString(rawCredential);
+    if (!credential.isValid()) {
+      throw new HttpErrors.UnprocessableEntity('Invalid token');
+    }
+
+    /* Save files data into database */
+    const files = await this.fileStorageService.saveCredential(credential);
+
+    /* Clear credential from redis */
+    await this.credentialManagerService.removeCredential(credential);
+
+    return files;
+  }
+
   async pruneExpiredCredentials() {
     return this.credentialManagerService.pruneLastExpiredEntry();
   }
@@ -113,6 +137,8 @@ export class FileManagerService {
   constructor(
     @inject(STORAGE_DIRECTORY) private storagePath: string,
     @inject(REDIS_SERVICE) private redisService: RedisService,
+    @inject(FILE_STORAGE_SERVICE)
+    private fileStorageService: FileStorageService,
     @inject(CREDENTIAL_MANAGER_SERVICE)
     private credentialManagerService: CredentialManagerService,
   ) {}
