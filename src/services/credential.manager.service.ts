@@ -1,5 +1,4 @@
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
-import {HttpErrors} from '@loopback/rest';
 import {ObjectId} from 'bson';
 import {unlink} from 'fs/promises';
 import path from 'path';
@@ -28,84 +27,79 @@ export const CREDENTIAL_MANAGER_SERVICE_CONFIG =
 
 @injectable({scope: BindingScope.TRANSIENT})
 export class CredentialManagerService {
-  private getEntry(timeStamp: number): number {
-    return Math.ceil(timeStamp / this.configs.bucketInterval);
-  }
-
   async pruneLastExpiredEntry() {
-    const lastEntryTime = this.getEntry(
-      +new Date() - this.configs.bucketInterval,
-    );
+    const lastEntryTime = +new Date() - this.configs.bucketInterval;
     return this.removeEntry(lastEntryTime);
   }
 
-  async addCredential(credential: Credential): Promise<number> {
-    const entryIndex = this.getEntry(credential.expire_time);
-    const list = this.getCredentialsList(entryIndex, true);
-    if (!list) {
-      throw new HttpErrors.InternalServerError('Entry creation failed');
-    }
-    list.push(credential.getKey());
-    return entryIndex;
-  }
-
-  async removeCredential(credential: Credential) {
-    const entryIndex = this.getEntry(credential.expire_time);
-    if (!this._credentials[entryIndex]) {
-      return;
-    }
-    this._credentials[entryIndex] = this._credentials[entryIndex].filter(
-      x => x === credential.id.toString(),
+  async addCredential(credential: Credential) {
+    return this.redisService.client.SADD(
+      this.getRedisKey(credential.expire_time),
+      credential.getKey(),
     );
   }
 
-  async removeEntry(entryIndex: number): Promise<StringArray> {
-    const list = this.getCredentialsList(entryIndex, false);
-    if (!list) {
-      return [];
-    }
+  async removeCredential(credential: Credential) {
+    await this.redisService.client.SREM(
+      this.getRedisKey(credential.expire_time),
+      credential.getKey(),
+    );
+  }
 
-    /* Clear files and remove inde */
-    this.pruneFiles(list);
-    delete this._credentials[entryIndex];
-
-    return list;
+  async removeEntry(entryIndex: number) {
+    const redisKey = this.getRedisKey(entryIndex);
+    const tokens = await this.redisService.client.SMEMBERS(redisKey);
+    this.pruneFiles(tokens);
+    return this.redisService.client.DEL(redisKey);
   }
 
   /* Prune all stored files */
   async pruneFiles(list: StringArray) {
     for (const token of list) {
+      /* Fetch redis data and try to parse it */
       const rawCredential = await this.redisService.client.GET(token);
       if (!rawCredential) {
         continue;
       }
-
       const credential = new Credential(JSON.parse(rawCredential));
+
+      /* Remove file */
       for (const file of credential.uploaded_files) {
         await unlink(path.join(this.storageDirectory, file.id));
       }
 
+      /* Remove credential from redis */
       await this.redisService.client.DEL(token);
     }
   }
 
-  clearEntries() {
-    this._credentials = {};
-  }
-
-  getCredentialsList(
-    entryIndex: number,
-    createNew: boolean,
-  ): StringArray | undefined {
-    let list = this._credentials[entryIndex];
-    if (!list && createNew) {
-      list = this._credentials[entryIndex] = [];
+  async clearEntries() {
+    const redisKey = this.getRedisAllKey();
+    const items = await this.redisService.client.KEYS(redisKey);
+    for (const item in items) {
+      await this.redisService.client.DEL(item);
     }
-    return list;
   }
 
-  get credentials(): Readonly<Credentials> {
-    return this._credentials;
+  async getCredentialsList(
+    entryIndex: number,
+  ): Promise<StringArray | undefined> {
+    const redisKey = this.getRedisKey(entryIndex);
+    return this.redisService.client.SMEMBERS(redisKey);
+  }
+
+  private getRedisAllKey(): string {
+    return `entries_*`;
+  }
+  private getRedisKey(date: number): string {
+    const entryIndex = this.getEntry(date);
+    return `entries_${entryIndex}`;
+  }
+  private getRedisKeyByEntryIndex(entryIndex: number | string): string {
+    return `entries_${entryIndex}`;
+  }
+  private getEntry(timeStamp: number): number {
+    return Math.ceil(timeStamp / this.configs.bucketInterval);
   }
 
   constructor(
@@ -113,9 +107,5 @@ export class CredentialManagerService {
     @inject(STORAGE_DIRECTORY) private storageDirectory: string,
     @inject(CREDENTIAL_MANAGER_SERVICE_CONFIG)
     private configs: CredentialManagerServiceConfig,
-  ) {
-    this._credentials = {};
-  }
-
-  private _credentials: Credentials = {};
+  ) {}
 }
