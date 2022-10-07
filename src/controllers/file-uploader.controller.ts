@@ -8,7 +8,7 @@ export class FileUploaderController {
   /* TODO: CHECK USER ID FROM JWT */
   @intercept(FileHandlerInterceptor.BINDING_KEY)
   @post('/files/{token}/{field}/{user_id}', {
-    tags: ['file'],
+    tags: ['files'],
     description: 'Upload files',
     summary: 'Upload files',
     responses: {
