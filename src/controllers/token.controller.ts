@@ -1,5 +1,6 @@
 import {inject} from '@loopback/core';
 import {
+  del,
   getModelSchemaRef,
   param,
   patch,
@@ -11,7 +12,7 @@ import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
 export class TokenController {
   /* TODO: CHECK USER JWT - FOR AUTHORIZATION */
-  @patch('/token/{token}/{user_id}', {
+  @del('/token/{token}/{user_id}', {
     description: 'Reject a certificate',
     summary: 'Reject a certificate',
     tags: ['token'],
