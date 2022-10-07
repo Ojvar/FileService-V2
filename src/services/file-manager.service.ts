@@ -4,11 +4,64 @@ import {unlink} from 'fs/promises';
 import path from 'path';
 import {FILE_MANAGER_SERVICE_DTO} from '../dto';
 import {STORAGE_DIRECTORY} from '../interceptors';
-import {Token, UploadedFile} from '../models';
+import {Credential, File, UploadedFile} from '../models';
+import {
+  CredentialManagerService,
+  CREDENTIAL_MANAGER_SERVICE,
+} from './credential.manager.service';
+import {FileStorageService, FILE_STORAGE_SERVICE} from './file-storage.service';
 import {RedisService, REDIS_SERVICE} from './redis.service';
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
+  // async getCredential(
+  //   userId: string,
+  //   token: string,
+  // ): Promise<null | Credential> {
+  //   const key = Credential.generateKey(token, userId);
+  //   const rawData = await this.redisService.client.GET(key);
+  //   if (!rawData) {
+  //     return null;
+  //   }
+  //   return new Credential(JSON.parse(rawData));
+  // }
+  async getCredential(token: string, userId: string): Promise<Credential> {
+    const rawCredential = await this.redisService.client.GET(
+      Credential.generateKey(token, userId),
+    );
+    if (!rawCredential) {
+      throw new HttpErrors.UnprocessableEntity('Invalid token');
+    }
+    const credential = Credential.fromJsonString(rawCredential);
+    if (!credential.isValid()) {
+      throw new HttpErrors.UnprocessableEntity('Invalid token');
+    }
+    return credential;
+  }
+
+  async reject(token: string, userId: string) {
+    const credential = await this.getCredential(token, userId);
+
+    /* Remove credential from redis */
+    credential.markAsRejected();
+    await this.credentialManagerService.removeCredential(credential, true);
+  }
+
+  async commit(token: string, userId: string): Promise<File[]> {
+    const credential = await this.getCredential(token, userId);
+    const files = await this.fileStorageService.saveCredential(credential);
+
+    /* Remove credential from redis */
+    credential.markAsCommited();
+    await this.credentialManagerService.removeCredential(credential, false);
+
+    return files;
+  }
+
+  async pruneExpiredCredentials() {
+    return this.credentialManagerService.pruneLastExpiredEntry();
+  }
+
   async uploadFile(
     userId: string,
     token: string,
@@ -19,19 +72,21 @@ export class FileManagerService {
     const uploadedFile = this.getUploadedFile(request);
     uploadedFile.fieldname = field;
 
-    const credential = await this.getCredential(userId, token);
-    if (!credential?.isValid()) {
+    /* Fetch and Validate credential */
+    let credential;
+    try {
+      credential = await this.getCredential(token, userId);
+      if (!credential.checkAllowedFile(uploadedFile)) {
+        throw new HttpErrors.UnprocessableEntity(
+          'Invalid field-name or file-size',
+        );
+      }
+    } catch (err) {
       await this.removeFile(uploadedFile);
-      throw new HttpErrors.UnprocessableEntity('Invalid token');
-    }
-    if (!credential.checkAllowedFile(uploadedFile)) {
-      await this.removeFile(uploadedFile);
-      throw new HttpErrors.UnprocessableEntity(
-        'Invalid field-name or file-size',
-      );
+      throw err;
     }
 
-    /* Remove old uploaded file, and replace new file */
+    /* Replace new-file with old-file */
     await this.removeFileIfAlreadyUploaded(credential, uploadedFile);
     credential.addOrReplaceUploadedItem(uploadedFile);
 
@@ -42,7 +97,7 @@ export class FileManagerService {
   }
 
   async removeFileIfAlreadyUploaded(
-    credential: Token,
+    credential: Credential,
     uploadedFile: UploadedFile,
   ): Promise<void> {
     const oldUploadedFile = credential.getUploadedFile(uploadedFile);
@@ -56,28 +111,22 @@ export class FileManagerService {
     return unlink(filePath);
   }
 
-  async getCredential(userId: string, token: string): Promise<null | Token> {
-    const key = `${token}:${userId}`;
-    const rawData = await this.redisService.client.GET(key);
-    if (!rawData) {
-      return null;
-    }
-    return new Token(JSON.parse(rawData));
-  }
-
   /* Save credential into redis database */
-  async storeCredential(credential: Token): Promise<string | null> {
-    const redisKey = `${credential.id}:${credential.allowed_user}`;
-    return this.redisService.client.SET(redisKey, JSON.stringify(credential));
+  async storeCredential(credential: Credential): Promise<string | null> {
+    return this.redisService.client.SET(
+      credential.getKey(),
+      credential.toJsonString(),
+    );
   }
 
   /* Generate a new upload credential */
   async getToken(
     data: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO,
   ): Promise<FILE_MANAGER_SERVICE_DTO.GetTokenResponseDTO> {
-    const token = Token.fromTokenRequest(data);
-    await this.storeCredential(token);
-    return {id: token.id, expire_at: token.expire_time};
+    const credential = Credential.fromTokenRequest(data);
+    await this.storeCredential(credential);
+    await this.credentialManagerService.addCredential(credential);
+    return {id: credential.id, expire_at: credential.expire_time};
   }
 
   /* Get uploaded file */
@@ -98,6 +147,10 @@ export class FileManagerService {
   constructor(
     @inject(STORAGE_DIRECTORY) private storagePath: string,
     @inject(REDIS_SERVICE) private redisService: RedisService,
+    @inject(FILE_STORAGE_SERVICE)
+    private fileStorageService: FileStorageService,
+    @inject(CREDENTIAL_MANAGER_SERVICE)
+    private credentialManagerService: CredentialManagerService,
   ) {}
 }
 

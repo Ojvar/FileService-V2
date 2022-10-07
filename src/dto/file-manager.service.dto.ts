@@ -1,6 +1,8 @@
 import {model, property} from '@loopback/repository';
 import {AllowedFile, AllowedFiles} from '../models';
 
+export const OBJECT_ID_PATTERN = /^[0-9a-fA-F]{24}$/.source;
+
 export namespace FILE_MANAGER_SERVICE_DTO {
   @model({jsonSchema: {description: 'Get token request'}})
   export class GetTokenRequestDTO {
@@ -20,8 +22,12 @@ export namespace FILE_MANAGER_SERVICE_DTO {
     @property({
       type: 'string',
       requird: true,
+      id: true,
       mongodb: {dataType: 'ObjectId'},
-      jsonSchema: {description: 'Allowed user id'},
+      jsonSchema: {
+        description: 'Allowed user id',
+        pattern: OBJECT_ID_PATTERN,
+      },
     })
     allowed_user: string;
   }

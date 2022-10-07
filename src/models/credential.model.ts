@@ -73,10 +73,30 @@ export class UploadedFile {
 export type UploadedFiles = UploadedFile[];
 
 @model()
-export class Token extends Model {
+export class Credential extends Model {
+  markAsCommited() {
+    this.status = EnumTokenStatus.COMMITED;
+  }
+  markAsRejected() {
+    this.status = EnumTokenStatus.REJECTED;
+  }
+
+  static fromJsonString(data: string): Credential {
+    return new Credential(JSON.parse(data));
+  }
+  toJsonString(): string {
+    return JSON.stringify(this);
+  }
+
+  getKey(): string {
+    return Credential.generateKey(this.id, this.allowed_user);
+  }
+
   isValid(): Boolean {
     /* TODO: CHECK TOKEN STATUS TOO */
-    return this.expire_time >= +new Date();
+    return (
+      this.expire_time >= +new Date() && this.status === EnumTokenStatus.NORMAL
+    );
   }
   checkAllowedFile(file: UploadedFile): boolean {
     const index = this.allowed_files.findIndex(
@@ -86,17 +106,6 @@ export class Token extends Model {
   }
   getUploadedFile(file: UploadedFile): UploadedFile | undefined {
     return this.uploaded_files.find(x => x.fieldname === file.fieldname);
-  }
-
-  static fromTokenRequest(data: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO) {
-    return new Token({
-      // uploaded_files: [],
-      allowed_files: [...data.allowed_files],
-      allowed_user: data.allowed_user,
-      expire_time: data.expire_time
-        ? +new Date() + data.expire_time * 1000
-        : undefined,
-    });
   }
 
   addOrReplaceUploadedItem(newUploadedFile: UploadedFile): number {
@@ -111,7 +120,22 @@ export class Token extends Model {
     return index;
   }
 
-  constructor(data?: Partial<Token>) {
+  static generateKey(token: string, userId: string): string {
+    return `${token}:${userId}`;
+  }
+
+  static fromTokenRequest(data: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO) {
+    return new Credential({
+      // uploaded_files: [],
+      allowed_files: [...data.allowed_files],
+      allowed_user: data.allowed_user,
+      expire_time: data.expire_time
+        ? +new Date() + data.expire_time * 1000
+        : undefined,
+    });
+  }
+
+  constructor(data?: Partial<Credential>) {
     super(data);
 
     /* Set default data */
@@ -162,4 +186,4 @@ export interface TokenRelations {
   // describe navigational properties here
 }
 
-export type TokenWithRelations = Token & TokenRelations;
+export type TokenWithRelations = Credential & TokenRelations;

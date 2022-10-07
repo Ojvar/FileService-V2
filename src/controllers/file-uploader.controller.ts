@@ -5,9 +5,10 @@ import {UploadedFile} from '../models';
 import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
 export class FileUploaderController {
+  /* TODO: CHECK USER ID FROM JWT */
   @intercept(FileHandlerInterceptor.BINDING_KEY)
   @post('/files/{token}/{field}/{user_id}', {
-    tags: ['file-upload'],
+    tags: ['file'],
     description: 'Upload files',
     summary: 'Upload files',
     responses: {
