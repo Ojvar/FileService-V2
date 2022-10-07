@@ -12,7 +12,7 @@ export class FileRepository extends DefaultCrudRepository<
     const now = new Date();
     const newFile = new File({
       id: file.id,
-      filename: file.fieldname,
+      field_name: file.fieldname,
       original_name: file.originalname,
       mime: file.mimetype,
       size: file.size,

@@ -2,7 +2,7 @@ import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {HttpErrors, Request} from '@loopback/rest';
 import {unlink} from 'fs/promises';
 import path from 'path';
-import {FILE_MANAGER_SERVICE_DTO} from '../dto';
+import {FileInfoDTO, FILE_MANAGER_SERVICE_DTO} from '../dto';
 import {STORAGE_DIRECTORY} from '../interceptors';
 import {Credential, File, UploadedFile} from '../models';
 import {
@@ -14,17 +14,11 @@ import {RedisService, REDIS_SERVICE} from './redis.service';
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
-  // async getCredential(
-  //   userId: string,
-  //   token: string,
-  // ): Promise<null | Credential> {
-  //   const key = Credential.generateKey(token, userId);
-  //   const rawData = await this.redisService.client.GET(key);
-  //   if (!rawData) {
-  //     return null;
-  //   }
-  //   return new Credential(JSON.parse(rawData));
-  // }
+  async getFileInfo(id: string): Promise<FileInfoDTO> {
+    const file = await this.fileStorageService.getFileById(id);
+    return FileInfoDTO.fromModel(file);
+  }
+
   async getCredential(token: string, userId: string): Promise<Credential> {
     const rawCredential = await this.redisService.client.GET(
       Credential.generateKey(token, userId),
