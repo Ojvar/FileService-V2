@@ -1,5 +1,6 @@
 import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
+import {HttpErrors} from '@loopback/rest';
 import {FileStorageDataSource} from '../datasources';
 import {EnumFileStatus, File, FileRelations, UploadedFile} from '../models';
 
@@ -8,6 +9,14 @@ export class FileRepository extends DefaultCrudRepository<
   typeof File.prototype.id,
   FileRelations
 > {
+  async getFileInfo(id: string): Promise<File> {
+    const file = await this.findById(id);
+    if (!file) {
+      throw new HttpErrors.UnprocessableEntity('File not found');
+    }
+    return file;
+  }
+
   async addFile(file: UploadedFile, userId: string): Promise<File> {
     const now = new Date();
     const newFile = new File({

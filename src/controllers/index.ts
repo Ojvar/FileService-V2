@@ -7,3 +7,4 @@ export * from './ping.controller';
 export * from './token.controller';
 export * from './file-uploader.controller';
 export * from './file.controller';
+export * from './file-downloader.controller';
