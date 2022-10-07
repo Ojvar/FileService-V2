@@ -1,5 +1,5 @@
 import {Model, model, property} from '@loopback/repository';
-import {File} from '../models';
+import {File, FileMeta} from '../models';
 
 @model()
 export class FileInfoDTO extends Model {
@@ -12,10 +12,20 @@ export class FileInfoDTO extends Model {
   size: number;
   @property({type: 'string', jsonSchema: {description: 'File id'}})
   mime: string;
-  @property({type: 'Date', jsonSchema: {description: 'Uploade date'}})
+  @property({type: 'date', jsonSchema: {description: 'Uploade date'}})
   uploaded_at: Date;
-  @property({type: 'Date', jsonSchema: {description: 'Uploaded by'}})
+  @property({type: 'date', jsonSchema: {description: 'Uploaded by'}})
   uploaded_by: string;
+  @property({
+    type: 'object',
+    required: false,
+    default: {},
+    jsonSchema: {
+      description: 'File metadata',
+      additionalProperties: {type: ['string', 'number']},
+    },
+  })
+  meta?: FileMeta;
 
   /* Covnert a "File" into "FileInfoDTO" */
   static fromModel(data: File): FileInfoDTO {
@@ -27,6 +37,7 @@ export class FileInfoDTO extends Model {
       size: data.size,
       uploaded_at: data.uploaded.at,
       uploaded_by: data.uploaded.by,
+      meta: data.meta,
     });
   }
 

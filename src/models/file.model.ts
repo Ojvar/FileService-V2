@@ -5,6 +5,8 @@ export enum EnumFileStatus {
   DELETED = 1,
 }
 
+export type FileMeta = Record<string, string | number>;
+
 @model()
 export class UploadData {
   @property({type: 'date', required: true}) at: Date;
@@ -26,6 +28,13 @@ export class File extends Entity {
     jsonSchema: {type: 'number', enum: Object.values(EnumFileStatus)},
   })
   status: EnumFileStatus;
+  @property({
+    type: 'object',
+    required: false,
+    default: {},
+    jsonSchema: {additionalProperties: {type: ['string', 'number']}},
+  })
+  meta?: FileMeta;
 
   constructor(data?: Partial<File>) {
     super(data);
