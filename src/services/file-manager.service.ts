@@ -63,8 +63,7 @@ export class FileManagerService {
     request: Request,
   ): Promise<UploadedFile> {
     /* Fix field-name, it is 'file' as default */
-    const uploadedFile = this.getUploadedFile(request);
-    uploadedFile.fieldname = field;
+    const uploadedFile = this.getUploadedFile(request, field);
 
     /* Fetch and Validate credential */
     let credential;
@@ -124,17 +123,18 @@ export class FileManagerService {
   }
 
   /* Get uploaded file */
-  getUploadedFile(request: Request): UploadedFile {
+  getUploadedFile(request: Request, field?: string): UploadedFile {
     const uploadedFile = request.file;
     if (!uploadedFile) {
       throw new HttpErrors.UnprocessableEntity('Empty file');
     }
     return {
       id: uploadedFile.filename,
-      fieldname: uploadedFile.fieldname,
+      fieldname: field ?? uploadedFile.fieldname,
       mimetype: uploadedFile.mimetype,
       originalname: uploadedFile.originalname,
       size: uploadedFile.size,
+      meta: request.body,
     };
   }
 

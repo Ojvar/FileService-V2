@@ -27,6 +27,7 @@ export class FileRepository extends DefaultCrudRepository<
       size: file.size,
       status: EnumFileStatus.ACTIVE,
       uploaded: {at: now, by: userId},
+      meta: file.meta,
     });
     return this.create(newFile);
   }

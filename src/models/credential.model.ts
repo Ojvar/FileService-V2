@@ -1,6 +1,7 @@
 import {Model, model, property} from '@loopback/repository';
 import {ObjectId} from 'bson';
 import {FILE_MANAGER_SERVICE_DTO} from '../dto';
+import {FileMeta} from './file.model';
 
 export enum EnumTokenStatus {
   NORMAL = 0,
@@ -69,6 +70,17 @@ export class UploadedFile {
     jsonSchema: {description: 'File size'},
   })
   size: number;
+
+  @property({
+    type: 'object',
+    required: false,
+    default: {},
+    jsonSchema: {
+      description: 'File meta data',
+      additionalProperties: {type: ['string', 'number']},
+    },
+  })
+  meta?: FileMeta;
 }
 export type UploadedFiles = UploadedFile[];
 
