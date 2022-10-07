@@ -12,12 +12,26 @@ import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 export class TokenController {
   /* TODO: CHECK USER JWT - FOR AUTHORIZATION */
   @patch('/token/{token}/{user_id}', {
-    description: 'Commit uploaded files',
-    summary: 'Commit uploaded files',
+    description: 'Reject a certificate',
+    summary: 'Reject a certificate',
     tags: ['token'],
-    responses: {204: {description: 'Commit Successfully'}},
+    responses: {204: {description: 'Reject successfully'}},
   })
-  async commitToken(
+  async rejectCertificate(
+    @param.path.string('token') token: string,
+    @param.path.string('user_id') userId: string,
+  ): Promise<void> {
+    await this.fileManagerService.reject(token, userId);
+  }
+
+  /* TODO: CHECK USER JWT - FOR AUTHORIZATION */
+  @patch('/token/{token}/{user_id}', {
+    description: 'Commit a certificate',
+    summary: 'Commit a certificate',
+    tags: ['token'],
+    responses: {204: {description: 'Commit successfully'}},
+  })
+  async commitCertificate(
     @param.path.string('token') token: string,
     @param.path.string('user_id') userId: string,
   ): Promise<void> {

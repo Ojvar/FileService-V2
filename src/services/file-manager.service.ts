@@ -14,9 +14,18 @@ import {RedisService, REDIS_SERVICE} from './redis.service';
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
-  /* Commit a certificate */
-  async commit(token: string, userId: string): Promise<File[]> {
-    /* Fetch data from redis and validate credential */
+  // async getCredential(
+  //   userId: string,
+  //   token: string,
+  // ): Promise<null | Credential> {
+  //   const key = Credential.generateKey(token, userId);
+  //   const rawData = await this.redisService.client.GET(key);
+  //   if (!rawData) {
+  //     return null;
+  //   }
+  //   return new Credential(JSON.parse(rawData));
+  // }
+  async getCredential(token: string, userId: string): Promise<Credential> {
     const rawCredential = await this.redisService.client.GET(
       Credential.generateKey(token, userId),
     );
@@ -27,12 +36,24 @@ export class FileManagerService {
     if (!credential.isValid()) {
       throw new HttpErrors.UnprocessableEntity('Invalid token');
     }
+    return credential;
+  }
 
-    /* Save files data into database */
+  async reject(token: string, userId: string) {
+    const credential = await this.getCredential(token, userId);
+
+    /* Remove credential from redis */
+    credential.markAsRejected();
+    await this.credentialManagerService.removeCredential(credential, true);
+  }
+
+  async commit(token: string, userId: string): Promise<File[]> {
+    const credential = await this.getCredential(token, userId);
     const files = await this.fileStorageService.saveCredential(credential);
 
-    /* Clear credential from redis */
-    await this.credentialManagerService.removeCredential(credential);
+    /* Remove credential from redis */
+    credential.markAsCommited();
+    await this.credentialManagerService.removeCredential(credential, false);
 
     return files;
   }
@@ -52,19 +73,20 @@ export class FileManagerService {
     uploadedFile.fieldname = field;
 
     /* Fetch and Validate credential */
-    const credential = await this.getCredential(userId, token);
-    if (!credential?.isValid()) {
+    let credential;
+    try {
+      credential = await this.getCredential(token, userId);
+      if (!credential.checkAllowedFile(uploadedFile)) {
+        throw new HttpErrors.UnprocessableEntity(
+          'Invalid field-name or file-size',
+        );
+      }
+    } catch (err) {
       await this.removeFile(uploadedFile);
-      throw new HttpErrors.UnprocessableEntity('Invalid token');
-    }
-    if (!credential.checkAllowedFile(uploadedFile)) {
-      await this.removeFile(uploadedFile);
-      throw new HttpErrors.UnprocessableEntity(
-        'Invalid field-name or file-size',
-      );
+      throw err;
     }
 
-    /* Remove old uploaded file, and replace new file */
+    /* Replace new-file with old-file */
     await this.removeFileIfAlreadyUploaded(credential, uploadedFile);
     credential.addOrReplaceUploadedItem(uploadedFile);
 
@@ -87,18 +109,6 @@ export class FileManagerService {
   async removeFile(uploadedFile: UploadedFile): Promise<void> {
     const filePath = path.resolve(this.storagePath, uploadedFile.id);
     return unlink(filePath);
-  }
-
-  async getCredential(
-    userId: string,
-    token: string,
-  ): Promise<null | Credential> {
-    const key = Credential.generateKey(token, userId);
-    const rawData = await this.redisService.client.GET(key);
-    if (!rawData) {
-      return null;
-    }
-    return new Credential(JSON.parse(rawData));
   }
 
   /* Save credential into redis database */

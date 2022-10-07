@@ -39,7 +39,7 @@ export class CredentialManagerService {
     );
   }
 
-  async removeCredential(credential: Credential) {
+  async removeCredential(credential: Credential, removeFiles: boolean) {
     const redisKey = credential.getKey();
     return Promise.all([
       this.redisService.client.SREM(
@@ -47,6 +47,7 @@ export class CredentialManagerService {
         redisKey,
       ),
       this.redisService.client.DEL(redisKey),
+      removeFiles ? this.removeFilesFromDisk(credential) : undefined,
     ]);
   }
 
@@ -60,20 +61,20 @@ export class CredentialManagerService {
   /* Prune all stored files */
   async pruneFiles(list: StringArray) {
     for (const token of list) {
-      /* Fetch redis data and try to parse it */
       const rawCredential = await this.redisService.client.GET(token);
       if (!rawCredential) {
         continue;
       }
       const credential = new Credential(JSON.parse(rawCredential));
 
-      /* Remove file */
-      for (const file of credential.uploaded_files) {
-        await unlink(path.join(this.storageDirectory, file.id));
-      }
-
-      /* Remove credential from redis */
+      await this.removeFilesFromDisk(credential);
       await this.redisService.client.DEL(token);
+    }
+  }
+
+  async removeFilesFromDisk(credential: Credential) {
+    for (const file of credential.uploaded_files) {
+      await unlink(path.join(this.storageDirectory, file.id));
     }
   }
 

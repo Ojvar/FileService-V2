@@ -74,6 +74,13 @@ export type UploadedFiles = UploadedFile[];
 
 @model()
 export class Credential extends Model {
+  markAsCommited() {
+    this.status = EnumTokenStatus.COMMITED;
+  }
+  markAsRejected() {
+    this.status = EnumTokenStatus.REJECTED;
+  }
+
   static fromJsonString(data: string): Credential {
     return new Credential(JSON.parse(data));
   }
