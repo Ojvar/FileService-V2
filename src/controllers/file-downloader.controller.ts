@@ -7,7 +7,7 @@ import {STORAGE_DIRECTORY} from '../interceptors';
 import {FileRepository} from '../repositories';
 
 export class FileDownloaderController {
-  @get('/file/download/{id}', {
+  @get('/files/download/{id}', {
     tags: ['files'],
     description: 'Download file by file-id',
     summary: 'Download file by file-id',
