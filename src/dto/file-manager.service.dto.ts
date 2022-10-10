@@ -22,11 +22,11 @@ export namespace FILE_MANAGER_SERVICE_DTO {
     @property({
       type: 'string',
       requird: true,
-      id: true,
-      mongodb: {dataType: 'ObjectId'},
+      // id: true,
+      // mongodb: {dataType: 'ObjectId'},
       jsonSchema: {
         description: 'Allowed user id',
-        pattern: OBJECT_ID_PATTERN,
+        // pattern: OBJECT_ID_PATTERN,
       },
     })
     allowed_user: string;
@@ -36,7 +36,7 @@ export namespace FILE_MANAGER_SERVICE_DTO {
   export class GetTokenResponseDTO {
     @property({
       type: 'string',
-      mongodb: {dataType: 'ObjectId'},
+      // mongodb: {dataType: 'ObjectId'},
       jsonSchema: {description: 'Token id'},
     })
     id: string;

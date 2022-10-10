@@ -10,8 +10,7 @@ export type FileMeta = Record<string, string | number>;
 @model()
 export class UploadData {
   @property({type: 'date', required: true}) at: Date;
-  @property({type: 'string', required: true, mongodb: {dataType: 'ObjectId'}})
-  by: string;
+  @property({type: 'string', required: true}) by: string;
 }
 
 @model({name: 'files'})

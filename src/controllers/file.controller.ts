@@ -1,5 +1,5 @@
 import {inject} from '@loopback/core';
-import {get, getModelSchemaRef, param} from '@loopback/rest';
+import {del, get, getModelSchemaRef, param} from '@loopback/rest';
 import {FileInfoDTO, OBJECT_ID_PATTERN} from '../dto';
 import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
@@ -24,6 +24,16 @@ export class FileController {
     id: string,
   ): Promise<FileInfoDTO> {
     return this.fileManagerService.getFileInfo(id);
+  }
+
+  @del('/files/{id}', {
+    tags: ['files'],
+    description: 'Remove file',
+    summary: 'Remove file',
+    responses: {204: {description: 'Remove successfully'}},
+  })
+  async removeFile(@param.path.string('id') id: string): Promise<void> {
+    return this.fileManagerService.removeFile(id);
   }
 
   constructor(

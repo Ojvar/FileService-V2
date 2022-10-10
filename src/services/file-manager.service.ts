@@ -75,12 +75,12 @@ export class FileManagerService {
         );
       }
     } catch (err) {
-      await this.removeFile(uploadedFile);
+      await this.deleteFile(uploadedFile.id);
       throw err;
     }
 
     /* Replace new-file with old-file */
-    await this.removeFileIfAlreadyUploaded(credential, uploadedFile);
+    await this.deleteFileIfAlreadyUploaded(credential, uploadedFile);
     credential.addOrReplaceUploadedItem(uploadedFile);
 
     /* Update redis */
@@ -89,19 +89,26 @@ export class FileManagerService {
     return uploadedFile;
   }
 
-  async removeFileIfAlreadyUploaded(
+  async deleteFileIfAlreadyUploaded(
     credential: Credential,
     uploadedFile: UploadedFile,
   ): Promise<void> {
     const oldUploadedFile = credential.getUploadedFile(uploadedFile);
     if (oldUploadedFile) {
-      return this.removeFile(oldUploadedFile);
+      return this.deleteFile(oldUploadedFile.id);
     }
   }
 
-  async removeFile(uploadedFile: UploadedFile): Promise<void> {
-    const filePath = path.resolve(this.storagePath, uploadedFile.id);
+  /* Delete file from disk */
+  async deleteFile(id: string): Promise<void> {
+    const filePath = path.resolve(this.storagePath, id);
     return unlink(filePath);
+  }
+
+  /* Remove file from database and disk */
+  async removeFile(id: string): Promise<void> {
+    await this.fileStorageService.removeFile(id);
+    return this.deleteFile(id);
   }
 
   /* Save credential into redis database */
