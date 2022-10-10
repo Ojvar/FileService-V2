@@ -32,6 +32,23 @@ export class FileRepository extends DefaultCrudRepository<
     return this.create(newFile);
   }
 
+  async updateFile(file: UploadedFile, userId: string): Promise<File> {
+    const now = new Date();
+    const newFile = new File({
+      id: file.id,
+      field_name: file.fieldname,
+      original_name: file.originalname,
+      mime: file.mimetype,
+      size: file.size,
+      status: EnumFileStatus.ACTIVE,
+      uploaded: {at: now, by: userId},
+      meta: file.meta,
+    });
+
+    await this.updateById(newFile.id, newFile);
+    return newFile;
+  }
+
   constructor(
     @inject('datasources.FileStorage') dataSource: FileStorageDataSource,
   ) {

@@ -1,7 +1,7 @@
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {get, param, Response, RestBindings} from '@loopback/rest';
-import path from 'path';
+import {resolve} from 'path';
 import {OBJECT_ID_PATTERN} from '../dto';
 import {STORAGE_DIRECTORY} from '../interceptors';
 import {FileRepository} from '../repositories';
@@ -31,7 +31,7 @@ export class FileDownloaderController {
     id: string,
   ): Promise<Response> {
     const fileInfo = await this.fileRepository.getFileInfo(id);
-    const filepath = path.resolve(this.storageDirectory, fileInfo.getId());
+    const filepath = resolve(this.storageDirectory, fileInfo.getId());
     response.download(filepath, fileInfo.original_name);
     return response;
   }

@@ -30,7 +30,14 @@ export class AllowedFile {
     required: false,
     jsonSchema: {description: 'MIME type'},
   })
-  mime_type?: string | null;
+  mime_type?: string;
+
+  @property({
+    type: 'string',
+    required: false,
+    jsonSchema: {description: 'File id to replace with'},
+  })
+  replace_with?: string;
 }
 export type AllowedFiles = AllowedFile[];
 

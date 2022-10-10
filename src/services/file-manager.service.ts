@@ -1,7 +1,7 @@
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {HttpErrors, Request} from '@loopback/rest';
-import {unlink} from 'fs/promises';
-import path from 'path';
+import {unlinkSync} from 'fs';
+import {resolve} from 'path';
 import {FileInfoDTO, FILE_MANAGER_SERVICE_DTO} from '../dto';
 import {STORAGE_DIRECTORY} from '../interceptors';
 import {Credential, File, UploadedFile} from '../models';
@@ -75,7 +75,7 @@ export class FileManagerService {
         );
       }
     } catch (err) {
-      await this.deleteFile(uploadedFile.id);
+      this.deleteFile(uploadedFile.id);
       throw err;
     }
 
@@ -99,16 +99,20 @@ export class FileManagerService {
     }
   }
 
-  /* Delete file from disk */
-  async deleteFile(id: string): Promise<void> {
-    const filePath = path.resolve(this.storagePath, id);
-    return unlink(filePath);
+  deleteFile(id: string) {
+    const filePath = resolve(this.storagePath, id);
+    try {
+      unlinkSync(filePath);
+    } catch (err) {
+      /* TODO: LOG ERROR */
+      console.error(err);
+    }
   }
 
   /* Remove file from database and disk */
   async removeFile(id: string): Promise<void> {
     await this.fileStorageService.removeFile(id);
-    return this.deleteFile(id);
+    this.deleteFile(id);
   }
 
   /* Save credential into redis database */

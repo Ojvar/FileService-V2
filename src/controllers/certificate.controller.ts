@@ -12,7 +12,7 @@ import {FILE_MANAGER_SERVICE_DTO} from '../dto';
 import {Credential} from '../models';
 import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
-export class TokenController {
+export class CertificateController {
   /* TODO: CHECK USER JWT - FOR AUTHORIZATION */
   @get('/token/{token}/{user_id}', {
     description: 'Get credential data',

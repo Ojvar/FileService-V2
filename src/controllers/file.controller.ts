@@ -26,6 +26,7 @@ export class FileController {
     return this.fileManagerService.getFileInfo(id);
   }
 
+  /* TODO: CHECK USER JWT -- AUTHORIZATION */
   @del('/files/{id}', {
     tags: ['files'],
     description: 'Remove file',
