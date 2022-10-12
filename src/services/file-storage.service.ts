@@ -1,11 +1,10 @@
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
-import {renameSync, unlinkSync} from 'fs';
-import {resolve} from 'path';
 import {STORAGE_DIRECTORY} from '../interceptors';
 import {Credential, File} from '../models';
 import {FileRepository} from '../repositories';
+import {FileService, FILE_SERVICE} from './file.service';
 
 export const FILE_STORAGE_SERVICE = BindingKey.create<FileStorageService>(
   'services.FileStorageService',
@@ -36,9 +35,9 @@ export class FileStorageService {
 
       if (allowedFileInfo?.replace_with) {
         /* Remove old file */
-        this.deleteFile(allowedFileInfo.replace_with);
+        await this.fileService.deleteFile(allowedFileInfo.replace_with);
         /* Rename new file to old file */
-        this.moveFile(file.id, allowedFileInfo.replace_with);
+        await this.fileService.moveFile(file.id, allowedFileInfo.replace_with);
         /* Update file-info */
         file.id = allowedFileInfo.replace_with;
       }
@@ -61,29 +60,9 @@ export class FileStorageService {
     return files;
   }
 
-  deleteFile(id: string) {
-    const filePath = resolve(this.storagePath, id);
-    try {
-      unlinkSync(filePath);
-    } catch (err) {
-      /* TODO: LOG ERROR */
-      console.error(err);
-    }
-  }
-
-  moveFile(source: string, target: string) {
-    const sourcePath = resolve(this.storagePath, source);
-    const targetPath = resolve(this.storagePath, target);
-    try {
-      renameSync(sourcePath, targetPath);
-    } catch (err) {
-      /* TODO: LOG ERROR */
-      console.error(err);
-    }
-  }
-
   constructor(
     @inject(STORAGE_DIRECTORY) private storagePath: string,
+    @inject(FILE_SERVICE) private fileService: FileService,
     @repository(FileRepository) private fileRepository: FileRepository,
   ) {}
 }

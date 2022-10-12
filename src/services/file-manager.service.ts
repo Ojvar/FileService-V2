@@ -1,16 +1,18 @@
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {HttpErrors, Request} from '@loopback/rest';
-import {unlinkSync} from 'fs';
-import {resolve} from 'path';
 import {FileInfoDTO, FILE_MANAGER_SERVICE_DTO} from '../dto';
-import {STORAGE_DIRECTORY} from '../interceptors';
 import {Credential, File, UploadedFile} from '../models';
 import {
   CredentialManagerService,
   CREDENTIAL_MANAGER_SERVICE,
 } from './credential.manager.service';
 import {FileStorageService, FILE_STORAGE_SERVICE} from './file-storage.service';
+import {FileService, FILE_SERVICE} from './file.service';
 import {RedisService, REDIS_SERVICE} from './redis.service';
+
+export const FILE_MANAGER_SERVICE = BindingKey.create<FileManagerService>(
+  'services.FileManagerService',
+);
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
@@ -75,7 +77,7 @@ export class FileManagerService {
         );
       }
     } catch (err) {
-      this.deleteFile(uploadedFile.id);
+      this.fileService.deleteFile(uploadedFile.id);
       throw err;
     }
 
@@ -95,24 +97,13 @@ export class FileManagerService {
   ): Promise<void> {
     const oldUploadedFile = credential.getUploadedFile(uploadedFile);
     if (oldUploadedFile) {
-      return this.deleteFile(oldUploadedFile.id);
+      return this.fileService.deleteFile(oldUploadedFile.id);
     }
   }
 
-  deleteFile(id: string) {
-    const filePath = resolve(this.storagePath, id);
-    try {
-      unlinkSync(filePath);
-    } catch (err) {
-      /* TODO: LOG ERROR */
-      console.error(err);
-    }
-  }
-
-  /* Remove file from database and disk */
   async removeFile(id: string): Promise<void> {
     await this.fileStorageService.removeFile(id);
-    this.deleteFile(id);
+    return this.fileService.deleteFile(id);
   }
 
   /* Save credential into redis database */
@@ -150,15 +141,11 @@ export class FileManagerService {
   }
 
   constructor(
-    @inject(STORAGE_DIRECTORY) private storagePath: string,
     @inject(REDIS_SERVICE) private redisService: RedisService,
+    @inject(FILE_SERVICE) private fileService: FileService,
     @inject(FILE_STORAGE_SERVICE)
     private fileStorageService: FileStorageService,
     @inject(CREDENTIAL_MANAGER_SERVICE)
     private credentialManagerService: CredentialManagerService,
   ) {}
 }
-
-export const FILE_MANAGER_SERVICE = BindingKey.create<FileManagerService>(
-  'services.FileManagerService',
-);

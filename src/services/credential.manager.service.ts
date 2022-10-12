@@ -1,10 +1,9 @@
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {ObjectId} from 'bson';
-import {unlink} from 'fs/promises';
-import path from 'path';
 import {STORAGE_DIRECTORY} from '../interceptors';
 import {Credential} from '../models';
 import {StringArray} from '../types';
+import {FileService, FILE_SERVICE} from './file.service';
 import {RedisService, REDIS_SERVICE} from './redis.service';
 
 export type CredentialManagerServiceConfig = {
@@ -54,7 +53,7 @@ export class CredentialManagerService {
   async removeEntry(entryIndex: number) {
     const redisKey = this.getRedisKey(entryIndex);
     const tokens = await this.redisService.client.SMEMBERS(redisKey);
-    this.pruneFiles(tokens);
+    await this.pruneFiles(tokens);
     return this.redisService.client.DEL(redisKey);
   }
 
@@ -74,7 +73,7 @@ export class CredentialManagerService {
 
   async removeFilesFromDisk(credential: Credential) {
     for (const file of credential.uploaded_files) {
-      await unlink(path.join(this.storageDirectory, file.id));
+      await this.fileService.deleteFile(file.id);
     }
   }
 
@@ -109,6 +108,7 @@ export class CredentialManagerService {
 
   constructor(
     @inject(REDIS_SERVICE) private redisService: RedisService,
+    @inject(FILE_SERVICE) private fileService: FileService,
     @inject(STORAGE_DIRECTORY) private storageDirectory: string,
     @inject(CREDENTIAL_MANAGER_SERVICE_CONFIG)
     private configs: CredentialManagerServiceConfig,

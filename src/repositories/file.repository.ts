@@ -11,7 +11,7 @@ export class FileRepository extends DefaultCrudRepository<
 > {
   async getFileInfo(id: string): Promise<File> {
     const file = await this.findById(id);
-    if (!file) {
+    if (!file?.isValid()) {
       throw new HttpErrors.UnprocessableEntity('File not found');
     }
     return file;

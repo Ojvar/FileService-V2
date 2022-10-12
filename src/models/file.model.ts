@@ -39,6 +39,10 @@ export class File extends Entity {
     super(data);
     this.status = data?.status ?? EnumFileStatus.ACTIVE;
   }
+
+  isValid(): boolean {
+    return this.status === EnumFileStatus.ACTIVE;
+  }
 }
 
 export interface FileRelations {
