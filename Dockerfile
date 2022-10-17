@@ -1,5 +1,7 @@
 # Check out https://hub.docker.com/_/node to select a new base image
-FROM node:16-slim
+FROM node:18-slim
+
+# RUN npm i -g yarn
 
 # Set to a non-root built-in user `node`
 USER node
@@ -14,12 +16,14 @@ WORKDIR /home/node/app
 # where available (npm@5+)
 COPY --chown=node package*.json ./
 
-RUN npm install
+#RUN npm install
+RUN yarn install --loglevel verbose
 
 # Bundle app source code
 COPY --chown=node . .
 
-RUN npm run build
+#RUN npm run build
+RUN yarn build
 
 # Bind to all network interfaces so that it can be mapped to the host OS
 ENV HOST=0.0.0.0 PORT=3000
