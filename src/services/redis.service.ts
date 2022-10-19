@@ -1,10 +1,10 @@
 import {
   BindingKey,
   BindingScope,
-  config,
+  inject,
   injectable,
   LifeCycleObserver,
-  lifeCycleObserver,
+  lifeCycleObserver
 } from '@loopback/core';
 import {HttpErrors} from '@loopback/rest';
 import debugFactory from 'debug';
@@ -14,11 +14,17 @@ import {
   RedisClientType,
   RedisFunctions,
   RedisModules,
-  RedisScripts,
+  RedisScripts
 } from 'redis';
 
 const trace = debugFactory('FileService:RedisService');
 
+export const REDIS_SERVICE_CONFIG = BindingKey.create<RedisClientOptions>(
+  'services.config.RedisService',
+);
+export const REDIS_SERVICE = BindingKey.create<RedisClient>(
+  'services.RedisService',
+);
 export type RedisClient = RedisClientType<
   RedisModules,
   RedisFunctions,
@@ -63,17 +69,9 @@ export class RedisService implements LifeCycleObserver {
   }
 
   constructor(
-    @config(REDIS_SERVICE_CONFIG, {optional: true})
-    private configs: RedisClientOptions = {},
+    @inject(REDIS_SERVICE_CONFIG) private configs: RedisClientOptions,
   ) {
     trace(this.configs);
     this._client = createClient(this.configs);
   }
 }
-
-export const REDIS_SERVICE_CONFIG = BindingKey.create<RedisClientOptions>(
-  'services.config.RedisService',
-);
-export const REDIS_SERVICE = BindingKey.create<RedisClient>(
-  'services.RedisService',
-);

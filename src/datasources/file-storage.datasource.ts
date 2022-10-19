@@ -1,5 +1,17 @@
-import {inject, lifeCycleObserver, LifeCycleObserver} from '@loopback/core';
+import {
+  BindingKey,
+  inject,
+  lifeCycleObserver,
+  LifeCycleObserver,
+} from '@loopback/core';
 import {juggler} from '@loopback/repository';
+
+export const FILE_STORAGE_DATASOURCE_CONFIG = BindingKey.create<object>(
+  'datasources.config.FileStorage',
+);
+export const FILE_STORAGE_DATASOURCE = BindingKey.create<FileStorageDataSource>(
+  'datasources.FileStorage',
+);
 
 const config = {
   name: 'FileStorage',
@@ -10,23 +22,26 @@ const config = {
   user: '',
   password: '',
   database: 'file_storage_db',
-  useNewUrlParser: true
+  useNewUrlParser: true,
 };
 
-// Observe application's life cycle to disconnect the datasource when
-// application is stopped. This allows the application to be shut down
-// gracefully. The `stop()` method is inherited from `juggler.DataSource`.
-// Learn more at https://loopback.io/doc/en/lb4/Life-cycle.html
 @lifeCycleObserver('datasource')
-export class FileStorageDataSource extends juggler.DataSource
-  implements LifeCycleObserver {
+export class FileStorageDataSource
+  extends juggler.DataSource
+  implements LifeCycleObserver
+{
   static dataSourceName = 'FileStorage';
   static readonly defaultConfig = config;
 
   constructor(
-    @inject('datasources.config.FileStorage', {optional: true})
+    @inject(FILE_STORAGE_DATASOURCE_CONFIG, {optional: true})
     dsConfig: object = config,
   ) {
+    Object.assign(dsConfig, {
+      name: config.name,
+      connector: config.connector,
+      useNewUrlParser: config.useNewUrlParser,
+    });
     super(dsConfig);
   }
 }

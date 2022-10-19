@@ -8,6 +8,13 @@ declare namespace NodeJS {
     REDIS_USERNAME: string;
     REDIS_PASSWORD: string;
 
+    MONGO_HOST: string;
+    MONGO_PORT: number;
+    MONGO_DB: string;
+    MONGO_URL: string;
+    MONGO_USERNAME: string;
+    MONGO_PASSWORD: string;
+
     FILE_STORAGE: string;
     MAX_FILE_SIZE: number;
 

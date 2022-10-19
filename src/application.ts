@@ -18,6 +18,7 @@ import multer from 'multer';
 import path from 'path';
 import {CronJobComponent} from './components';
 import {PRUNE_EXPIRED_CREDENTIALS_CRONJOB_CONFIG} from './crontabs';
+import {FILE_STORAGE_DATASOURCE_CONFIG} from './datasources';
 import {FileHandlerInterceptor, STORAGE_DIRECTORY} from './interceptors';
 import {MySequence} from './sequence';
 import {
@@ -60,6 +61,26 @@ export class FileServiceApplication extends BootMixin(
     this.configCronJobs();
     this.configMulter();
     this.configRedis();
+    this.configFileStorage();
+  }
+
+  private configFileStorage() {
+    const {
+      MONGO_URL,
+      MONGO_DB,
+      MONGO_HOST,
+      MONGO_PASSWORD,
+      MONGO_PORT,
+      MONGO_USERNAME,
+    } = process.env;
+    this.bind(FILE_STORAGE_DATASOURCE_CONFIG).to({
+      database: MONGO_DB,
+      url: MONGO_URL,
+      host: MONGO_HOST,
+      port: +MONGO_PORT,
+      user: MONGO_USERNAME,
+      password: MONGO_PASSWORD,
+    });
   }
 
   private configCredentialManager() {
