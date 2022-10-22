@@ -32,6 +32,7 @@ export class FileDownloaderController {
   ): Promise<Response> {
     const fileInfo = await this.fileRepository.getFileInfo(id);
     const filepath = resolve(this.storageDirectory, fileInfo.getId());
+    response.setHeader('Content-type', fileInfo.mime);
     response.download(filepath, fileInfo.original_name);
     return response;
   }
