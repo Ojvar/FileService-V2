@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
-import {HttpErrors, Request} from '@loopback/rest';
+import {HttpErrors, Model, Request} from '@loopback/rest';
 import {FileInfoDTO, FILE_MANAGER_SERVICE_DTO} from '../dto';
 import {Credential, File, UploadedFile} from '../models';
 import {
@@ -9,16 +10,61 @@ import {
 import {FileStorageService, FILE_STORAGE_SERVICE} from './file-storage.service';
 import {FileService, FILE_SERVICE} from './file.service';
 import {RedisService, REDIS_SERVICE} from './redis.service';
+import {ObjectId} from 'bson';
 
 export const FILE_MANAGER_SERVICE = BindingKey.create<FileManagerService>(
   'services.FileManagerService',
 );
 
+export class FileAccessToken extends Model {
+  token: string;
+  user_id: string;
+  file_id: string;
+  expire_time: number;
+
+  get redisKey(): string {
+    return `fat_${this.token}`;
+  }
+
+  toJson(): string {
+    return JSON.stringify({
+			file_id: this.file_id,
+			user_id: this.user_id,
+		});
+  }
+
+  constructor(data?: Partial<FileAccessToken>) {
+    super(data);
+    this.token = this.token || new ObjectId().toHexString();
+  }
+}
+
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
-  async getFileInfo(id: string): Promise<FileInfoDTO> {
+  async generateAccessToken(
+    fileId: string,
+    userId: string,
+    expireTime = 120,
+  ): Promise<FileAccessToken> {
+    const accessToken = new FileAccessToken({
+      expire_time: expireTime,
+      file_id: fileId,
+      user_id: userId,
+    });
+
+    await this.redisService.client.SET(
+      accessToken.redisKey,
+      accessToken.toJson(),
+      {EX: accessToken.expire_time},
+    );
+
+    return accessToken;
+  }
+
+  async getFileInfo(id: string, userId: string): Promise<FileInfoDTO> {
     const file = await this.fileStorageService.getFileById(id);
-    return FileInfoDTO.fromModel(file);
+		const accessToken = await this.generateAccessToken(id, userId);
+    return FileInfoDTO.fromModel(file, accessToken);
   }
 
   async getCredential(token: string, userId: string): Promise<Credential> {

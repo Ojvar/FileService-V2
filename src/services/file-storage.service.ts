@@ -35,9 +35,9 @@ export class FileStorageService {
 
       if (allowedFileInfo?.replace_with) {
         /* Remove old file */
-        await this.fileService.deleteFile(allowedFileInfo.replace_with);
+        this.fileService.deleteFile(allowedFileInfo.replace_with);
         /* Rename new file to old file */
-        await this.fileService.moveFile(file.id, allowedFileInfo.replace_with);
+        this.fileService.moveFile(file.id, allowedFileInfo.replace_with);
         /* Update file-info */
         file.id = allowedFileInfo.replace_with;
       }

@@ -5,7 +5,37 @@ import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
 export class FileController {
   /* TODO: CHECK USER JWT -- AUTHORIZATION */
-  @get('/files/{id}', {
+  @get('/generate-file-access-token/{id}/{user_id}', {
+    tags: ['files'],
+    description: 'Generate FileAccessToken for a specified user',
+    summary: 'Generate FileAccessToken',
+    responses: {
+      200: {
+        description: 'File access token',
+        content: {'text/plain': {schema: {type: 'string'}}},
+      },
+    },
+  })
+  async generateFileAccessToken(
+    @param.path.string('id', {
+      description: 'File id',
+      schema: {pattern: OBJECT_ID_PATTERN},
+    })
+    id: string,
+    @param.path.string('user_id', {description: 'User id'})
+    userId: string,
+  ): Promise<string> {
+    /* TODO: CHECK CLIENT PERMISSION -- JWT CHECK */
+    const accessToken = await this.fileManagerService.generateAccessToken(
+      id,
+      userId,
+    );
+    return accessToken.token;
+  }
+
+  /* TODO: CHECK USER JWT -- AUTHORIZATION */
+  /* user_id Should fetch from JWT token */
+  @get('/files/{id}/{user_id}', {
     tags: ['files'],
     description: 'Get file info',
     summary: 'Get file info',
@@ -22,8 +52,10 @@ export class FileController {
       schema: {pattern: OBJECT_ID_PATTERN},
     })
     id: string,
+    @param.path.string('user_id', {description: 'User id'})
+    userId: string,
   ): Promise<FileInfoDTO> {
-    return this.fileManagerService.getFileInfo(id);
+    return this.fileManagerService.getFileInfo(id, userId);
   }
 
   /* TODO: CHECK USER JWT -- AUTHORIZATION */

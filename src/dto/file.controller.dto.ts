@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {Model, model, property} from '@loopback/repository';
 import {File, FileMeta} from '../models';
+import {FileAccessToken} from '../services';
 
 @model()
 export class FileInfoDTO extends Model {
@@ -16,6 +18,8 @@ export class FileInfoDTO extends Model {
   uploaded_at: Date;
   @property({type: 'date', jsonSchema: {description: 'Uploaded by'}})
   uploaded_by: string;
+  @property({type: 'string', jsonSchema: {description: 'File access token'}})
+  access_token: string;
   @property({
     type: 'object',
     required: false,
@@ -28,7 +32,7 @@ export class FileInfoDTO extends Model {
   meta?: FileMeta;
 
   /* Covnert a "File" into "FileInfoDTO" */
-  static fromModel(data: File): FileInfoDTO {
+  static fromModel(data: File, accessToken: FileAccessToken): FileInfoDTO {
     return new FileInfoDTO({
       field_name: data.field_name,
       id: data.id,
@@ -38,6 +42,7 @@ export class FileInfoDTO extends Model {
       uploaded_at: data.uploaded.at,
       uploaded_by: data.uploaded.by,
       meta: data.meta,
+      access_token: accessToken.token,
     });
   }
 
