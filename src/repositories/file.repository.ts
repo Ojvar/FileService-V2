@@ -28,6 +28,7 @@ export class FileRepository extends DefaultCrudRepository<
       status: EnumFileStatus.ACTIVE,
       uploaded: {at: now, by: userId},
       meta: file.meta,
+      is_private: file.is_private,
     });
     return this.create(newFile);
   }
@@ -43,6 +44,7 @@ export class FileRepository extends DefaultCrudRepository<
       status: EnumFileStatus.ACTIVE,
       uploaded: {at: now, by: userId},
       meta: file.meta,
+      is_private: file.is_private,
     });
 
     await this.updateById(newFile.id, newFile);

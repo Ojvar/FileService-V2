@@ -122,6 +122,11 @@ export class FileManagerService {
           'Invalid field-name or file-size',
         );
       }
+
+      /* Set is_private field */
+      uploadedFile.is_private = credential.allowed_files.find(
+        x => x.field === uploadedFile.fieldname,
+      )?.is_private;
     } catch (err) {
       this.fileService.deleteFile(uploadedFile.id);
       throw err;
