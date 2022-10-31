@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {Model, model, property} from '@loopback/repository';
 import {ObjectId} from 'bson';
 import {FILE_MANAGER_SERVICE_DTO} from '../dto';
@@ -38,6 +39,13 @@ export class AllowedFile {
     jsonSchema: {description: 'File id to replace with'},
   })
   replace_with?: string;
+
+  @property({
+    type: 'boolean',
+    required: true,
+    jsonSchema: {description: 'Set Access level to private'},
+  })
+  is_private: boolean;
 }
 export type AllowedFiles = AllowedFile[];
 
@@ -88,6 +96,15 @@ export class UploadedFile {
     },
   })
   meta?: FileMeta;
+
+  @property({
+    type: 'boolean',
+    required: true,
+    jsonSchema: {
+      description: 'Set file access level',
+    },
+  })
+  is_private?: boolean;
 }
 export type UploadedFiles = UploadedFile[];
 

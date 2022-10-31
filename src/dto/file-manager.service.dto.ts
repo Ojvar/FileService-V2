@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {model, property} from '@loopback/repository';
 import {AllowedFile, AllowedFiles} from '../models';
 
