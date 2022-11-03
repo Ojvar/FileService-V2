@@ -50,3 +50,4 @@ export class FileInfoDTO extends Model {
     super(data);
   }
 }
+export type FileInfoListDTO = Array<FileInfoDTO>;

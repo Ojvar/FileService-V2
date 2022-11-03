@@ -7,6 +7,16 @@ export const OBJECT_ID_PATTERN = /^[0-9a-fA-F]{24}$/.source;
 
 export namespace FILE_MANAGER_SERVICE_DTO {
   @model()
+  export class SearchMetadataDTO {
+    @property({
+      type: 'object',
+      required: true,
+      jsonSchema: {description: 'Fields to search'},
+    })
+    fields: FileMeta;
+  }
+
+  @model()
   export class UpdateMetadataDTO {
     @property({type: 'object', required: false, default: {}})
     appended_fields: FileMeta;

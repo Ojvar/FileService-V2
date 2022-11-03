@@ -2,7 +2,7 @@ import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
 import {STORAGE_DIRECTORY} from '../interceptors';
-import {Credential, File} from '../models';
+import {Credential, File, FileMeta, Files} from '../models';
 import {FileRepository} from '../repositories';
 import {FileService, FILE_SERVICE} from './file.service';
 
@@ -12,9 +12,20 @@ export const FILE_STORAGE_SERVICE = BindingKey.create<FileStorageService>(
 
 @injectable({scope: BindingScope.TRANSIENT})
 export class FileStorageService {
-	async updateFile(file: File) : Promise<void> {
-		return this.fileRepository.update(file);
-	}
+  async filterByMetadata(metadata: FileMeta): Promise<Files> {
+    const filter = Object.keys(metadata).reduce(
+      (result: Record<string, unknown>, key: string) => {
+        result[`meta.${key}`] = metadata[key];
+        return result;
+      },
+      {},
+    );
+    return this.fileRepository.find({where: filter});
+  }
+
+  async updateFile(file: File): Promise<void> {
+    return this.fileRepository.update(file);
+  }
 
   async removeFile(id: string): Promise<void> {
     return this.fileRepository.deleteById(id);

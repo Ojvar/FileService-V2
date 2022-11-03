@@ -1,9 +1,42 @@
 import {inject} from '@loopback/core';
-import {del, get, patch, getModelSchemaRef, param, requestBody} from '@loopback/rest';
-import {FileInfoDTO, FILE_MANAGER_SERVICE_DTO, OBJECT_ID_PATTERN} from '../dto';
+import {
+  del,
+  get,
+  patch,
+  getModelSchemaRef,
+  param,
+  requestBody,
+	post,
+} from '@loopback/rest';
+import {FileInfoDTO, FileInfoListDTO, FILE_MANAGER_SERVICE_DTO, OBJECT_ID_PATTERN} from '../dto';
+import {FileMeta} from '../models';
 import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
 export class FileController {
+  /* TODO: CHECK USER JWT -- AUTHORIZATION */
+  @post('/files/find-by-meta/{user_id}', {
+    tags: ['files'],
+    description: 'Search in files metadata',
+    summary: 'Search in metadata',
+    responses: {
+      200: {
+        description: 'Files list',
+        content: {
+          'application/json': {
+            schmea: {type: 'array', items: getModelSchemaRef(FileInfoDTO)},
+          },
+        },
+      },
+    },
+  })
+  async searchMetadata(
+		@param.path.string("user_id") userId: string,
+    @requestBody() body: FileMeta,
+  ): Promise<FileInfoListDTO> {
+    /* TODO: CHECK CLIENT PERMISSION -- JWT CHECK */
+    return this.fileManagerService.searchMetadata(body, userId);
+  }
+
   /* TODO: CHECK USER JWT -- AUTHORIZATION */
   @patch('/files/{id}', {
     tags: ['files'],
@@ -17,13 +50,10 @@ export class FileController {
       schema: {pattern: OBJECT_ID_PATTERN},
     })
     id: string,
-		@requestBody() body: FILE_MANAGER_SERVICE_DTO.UpdateMetadataDTO
+    @requestBody() body: FILE_MANAGER_SERVICE_DTO.UpdateMetadataDTO,
   ): Promise<void> {
     /* TODO: CHECK CLIENT PERMISSION -- JWT CHECK */
-    return this.fileManagerService.updateMetadata(
-      id,
-			body
-    );
+    return this.fileManagerService.updateMetadata(id, body);
   }
 
   /* TODO: CHECK USER JWT -- AUTHORIZATION */

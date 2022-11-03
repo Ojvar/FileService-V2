@@ -72,3 +72,4 @@ export interface FileRelations {
 }
 
 export type FileWithRelations = File & FileRelations;
+export type Files = Array<File>;

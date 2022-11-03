@@ -2,8 +2,8 @@
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {HttpErrors, Model, Request} from '@loopback/rest';
 import {ObjectId} from 'bson';
-import {FileInfoDTO, FILE_MANAGER_SERVICE_DTO} from '../dto';
-import {Credential, File, UploadedFile} from '../models';
+import {FileInfoDTO, FileInfoListDTO, FILE_MANAGER_SERVICE_DTO} from '../dto';
+import {Credential, File, FileMeta, Files, UploadedFile} from '../models';
 import {
   CredentialManagerService,
   CREDENTIAL_MANAGER_SERVICE,
@@ -41,7 +41,25 @@ export class FileAccessToken extends Model {
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
-  async updateMetadata(id: string, data: FILE_MANAGER_SERVICE_DTO.UpdateMetadataDTO): Promise<void> {
+  async searchMetadata(
+    metadata: FileMeta,
+    userId: string,
+  ): Promise<FileInfoListDTO> {
+    const searchResult: Files = await this.fileStorageService.filterByMetadata(
+      metadata,
+    );
+    const result: FileInfoListDTO = [];
+    for (const file of searchResult) {
+      const token = await this.generateAccessToken(file.getId(), userId);
+      result.push(FileInfoDTO.fromModel(file, token));
+    }
+    return result;
+  }
+
+  async updateMetadata(
+    id: string,
+    data: FILE_MANAGER_SERVICE_DTO.UpdateMetadataDTO,
+  ): Promise<void> {
     const file = await this.fileStorageService.getFileById(id);
     file.updateMetadata(data.appended_fields, data.removed_fileds);
     return this.fileStorageService.updateFile(file);
