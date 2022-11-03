@@ -1,10 +1,19 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {model, property} from '@loopback/repository';
-import {AllowedFile, AllowedFiles} from '../models';
+import {AllowedFile, AllowedFiles, FileMeta} from '../models';
+import {StringArray} from '../types';
 
 export const OBJECT_ID_PATTERN = /^[0-9a-fA-F]{24}$/.source;
 
 export namespace FILE_MANAGER_SERVICE_DTO {
+  @model()
+  export class UpdateMetadataDTO {
+    @property({type: 'object', required: false, default: {}})
+    appended_fields: FileMeta;
+    @property.array(String, {required: false, default: []})
+    removed_fileds: StringArray;
+  }
+
   @model({jsonSchema: {description: 'Get token request'}})
   export class GetTokenRequestDTO {
     @property.array(AllowedFile, {require: true}) allowed_files: AllowedFiles;

@@ -12,6 +12,10 @@ export const FILE_STORAGE_SERVICE = BindingKey.create<FileStorageService>(
 
 @injectable({scope: BindingScope.TRANSIENT})
 export class FileStorageService {
+	async updateFile(file: File) : Promise<void> {
+		return this.fileRepository.update(file);
+	}
+
   async removeFile(id: string): Promise<void> {
     return this.fileRepository.deleteById(id);
   }

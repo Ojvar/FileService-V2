@@ -1,11 +1,33 @@
 import {inject} from '@loopback/core';
-import {del, get, getModelSchemaRef, param} from '@loopback/rest';
-import {FileInfoDTO, OBJECT_ID_PATTERN} from '../dto';
+import {del, get, patch, getModelSchemaRef, param, requestBody} from '@loopback/rest';
+import {FileInfoDTO, FILE_MANAGER_SERVICE_DTO, OBJECT_ID_PATTERN} from '../dto';
 import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
 export class FileController {
   /* TODO: CHECK USER JWT -- AUTHORIZATION */
-  @get('/generate-file-access-token/{id}/{user_id}', {
+  @patch('/files/{id}', {
+    tags: ['files'],
+    description: 'Update metadata of a file',
+    summary: 'Update file metadata',
+    responses: {204: {description: 'Metadata updated successfully'}},
+  })
+  async updateMetadata(
+    @param.path.string('id', {
+      description: 'File id',
+      schema: {pattern: OBJECT_ID_PATTERN},
+    })
+    id: string,
+		@requestBody() body: FILE_MANAGER_SERVICE_DTO.UpdateMetadataDTO
+  ): Promise<void> {
+    /* TODO: CHECK CLIENT PERMISSION -- JWT CHECK */
+    return this.fileManagerService.updateMetadata(
+      id,
+			body
+    );
+  }
+
+  /* TODO: CHECK USER JWT -- AUTHORIZATION */
+  @get('/files/generate-file-access-token/{id}/{user_id}', {
     tags: ['files'],
     description: 'Generate FileAccessToken for a specified user',
     summary: 'Generate FileAccessToken',

@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {Entity, model, property} from '@loopback/repository';
+import {StringArray} from '../types';
 
 export enum EnumFileStatus {
   ACTIVE = 0,
@@ -43,6 +45,25 @@ export class File extends Entity {
 
   isValid(): boolean {
     return this.status === EnumFileStatus.ACTIVE;
+  }
+
+  updateMetadata(appendedFields: FileMeta, deletedFields: StringArray = []) {
+    if (this.meta) {
+      deletedFields.forEach((field: string) => {
+        if (this.meta?.[field]) {
+          delete this.meta[field];
+        }
+      });
+    } else {
+      this.meta = {};
+    }
+
+    const keys = Object.keys(appendedFields);
+    keys.forEach((key: string) => {
+      if (this.meta) {
+        this.meta[key] = appendedFields[key];
+      }
+    });
   }
 }
 

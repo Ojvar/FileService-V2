@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {HttpErrors, Model, Request} from '@loopback/rest';
+import {ObjectId} from 'bson';
 import {FileInfoDTO, FILE_MANAGER_SERVICE_DTO} from '../dto';
 import {Credential, File, UploadedFile} from '../models';
 import {
@@ -10,7 +11,6 @@ import {
 import {FileStorageService, FILE_STORAGE_SERVICE} from './file-storage.service';
 import {FileService, FILE_SERVICE} from './file.service';
 import {RedisService, REDIS_SERVICE} from './redis.service';
-import {ObjectId} from 'bson';
 
 export const FILE_MANAGER_SERVICE = BindingKey.create<FileManagerService>(
   'services.FileManagerService',
@@ -28,9 +28,9 @@ export class FileAccessToken extends Model {
 
   toJson(): string {
     return JSON.stringify({
-			file_id: this.file_id,
-			user_id: this.user_id,
-		});
+      file_id: this.file_id,
+      user_id: this.user_id,
+    });
   }
 
   constructor(data?: Partial<FileAccessToken>) {
@@ -41,6 +41,12 @@ export class FileAccessToken extends Model {
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
+  async updateMetadata(id: string, data: FILE_MANAGER_SERVICE_DTO.UpdateMetadataDTO): Promise<void> {
+    const file = await this.fileStorageService.getFileById(id);
+    file.updateMetadata(data.appended_fields, data.removed_fileds);
+    return this.fileStorageService.updateFile(file);
+  }
+
   async generateAccessToken(
     fileId: string,
     userId: string,
@@ -63,7 +69,7 @@ export class FileManagerService {
 
   async getFileInfo(id: string, userId: string): Promise<FileInfoDTO> {
     const file = await this.fileStorageService.getFileById(id);
-		const accessToken = await this.generateAccessToken(id, userId);
+    const accessToken = await this.generateAccessToken(id, userId);
     return FileInfoDTO.fromModel(file, accessToken);
   }
 
