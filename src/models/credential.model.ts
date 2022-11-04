@@ -100,11 +100,16 @@ export class UploadedFile {
   @property({
     type: 'boolean',
     required: true,
-    jsonSchema: {
-      description: 'Set file access level',
-    },
+    jsonSchema: {description: 'Set file access level'},
   })
   is_private?: boolean;
+
+  @property({
+    type: 'string',
+    required: true,
+    jsonSchema: {description: 'File owner'},
+  })
+  owner: string;
 }
 export type UploadedFiles = UploadedFile[];
 

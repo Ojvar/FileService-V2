@@ -23,6 +23,7 @@ export class File extends Entity {
   @property({type: 'number', required: true}) size: number;
   @property({type: 'string', required: true}) mime: string;
   @property({type: 'boolean', required: true}) is_private: boolean;
+  @property({type: 'string', required: true}) owner: string;
   @property({required: true}) uploaded: UploadData;
   @property({
     type: 'number',

@@ -151,6 +151,7 @@ export class FileManagerService {
       uploadedFile.is_private = credential.allowed_files.find(
         x => x.field === uploadedFile.fieldname,
       )?.is_private;
+      uploadedFile.owner = userId;
     } catch (err) {
       this.fileService.deleteFile(uploadedFile.id);
       throw err;
@@ -212,6 +213,7 @@ export class FileManagerService {
       originalname: uploadedFile.originalname,
       size: uploadedFile.size,
       meta: request.body,
+      owner: '',
     };
   }
 
