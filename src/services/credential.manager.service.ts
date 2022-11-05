@@ -74,7 +74,7 @@ export class CredentialManagerService {
 
   async removeFilesFromDisk(credential: Credential) {
     for (const file of credential.uploaded_files) {
-      await this.fileService.deleteFile(file.id);
+      this.fileService.deleteFile(file.id);
     }
   }
 

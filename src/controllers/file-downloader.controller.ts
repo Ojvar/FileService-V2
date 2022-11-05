@@ -32,9 +32,14 @@ export class FileDownloaderController {
     id: string,
 		@param.query.string("token", {description: "Access token", required: true}) accessToken: string
   ): Promise<Response> {
-		await this.fileManagerService.checkAccessToken(id, accessToken);
-
     const fileInfo = await this.fileRepository.getFileInfo(id);
+
+		// Load file from database
+		if (fileInfo.is_private){
+			// Check file access token
+			await this.fileManagerService.checkAccessToken(id, accessToken);
+		}
+
     const filepath = resolve(this.storageDirectory, fileInfo.getId());
     response.setHeader('Content-type', fileInfo.mime);
     response.download(filepath, fileInfo.original_name);

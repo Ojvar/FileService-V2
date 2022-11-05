@@ -32,7 +32,10 @@ export class PruneExpiredCredentialsCronJob extends CronJob {
       name: PruneExpiredCredentialsCronJob.name,
       cronTime: configs.cronTime,
       start: true,
-      onTick: async () => fileManagerService.pruneExpiredCredentials(),
+      onTick: () => {
+				fileManagerService.pruneExpiredCredentials()
+					.catch(console.error)
+			}
     });
   }
 }

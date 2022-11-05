@@ -4,7 +4,7 @@ import {
   inject,
   injectable,
   LifeCycleObserver,
-  lifeCycleObserver
+  lifeCycleObserver,
 } from '@loopback/core';
 import {HttpErrors} from '@loopback/rest';
 import debugFactory from 'debug';
@@ -14,7 +14,7 @@ import {
   RedisClientType,
   RedisFunctions,
   RedisModules,
-  RedisScripts
+  RedisScripts,
 } from 'redis';
 
 const trace = debugFactory('FileService:RedisService');
@@ -43,19 +43,23 @@ export class RedisService implements LifeCycleObserver {
     return this._client;
   }
 
-  start() {
-    this.connect()
-      .catch(err => {
-        console.error(err);
-        throw new HttpErrors.InternalServerError('Redis Connection Failed');
-      })
-      .then(() => trace('started'));
+  async start() {
+    try {
+      await this.connect();
+      trace('started');
+    } catch (err) {
+      console.error(err);
+      throw new HttpErrors.InternalServerError('Redis Connection Failed');
+    }
   }
 
-  stop() {
-    this.disconnect()
-      .catch(console.error)
-      .then(() => trace('stopped'));
+  async stop() {
+    try {
+      await this.disconnect();
+      trace('stopped');
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async connect() {
