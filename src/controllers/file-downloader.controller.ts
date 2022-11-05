@@ -5,6 +5,7 @@ import {resolve} from 'path';
 import {OBJECT_ID_PATTERN} from '../dto';
 import {STORAGE_DIRECTORY} from '../interceptors';
 import {FileRepository} from '../repositories';
+import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
 export class FileDownloaderController {
   @get('/files/download/{id}', {
@@ -29,7 +30,10 @@ export class FileDownloaderController {
       schema: {pattern: OBJECT_ID_PATTERN},
     })
     id: string,
+		@param.query.string("token", {description: "Access token", required: true}) accessToken: string
   ): Promise<Response> {
+		await this.fileManagerService.checkAccessToken(id, accessToken);
+
     const fileInfo = await this.fileRepository.getFileInfo(id);
     const filepath = resolve(this.storageDirectory, fileInfo.getId());
     response.setHeader('Content-type', fileInfo.mime);
@@ -39,6 +43,7 @@ export class FileDownloaderController {
 
   constructor(
     @inject(STORAGE_DIRECTORY) private storageDirectory: string,
+    @inject(FILE_MANAGER_SERVICE) private fileManagerService: FileManagerService,
     @repository(FileRepository) private fileRepository: FileRepository,
   ) {}
 }

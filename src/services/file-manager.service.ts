@@ -22,11 +22,15 @@ export class FileAccessToken extends Model {
   file_id: string;
   expire_time: number;
 
+	static getRedisKey(token: string) : string {
+    return `fat_${token}`;
+	}
+
   get redisKey(): string {
-    return `fat_${this.token}`;
+    return FileAccessToken.getRedisKey(this.token);
   }
 
-  toJson(): string {
+	toJson(): string {
     return JSON.stringify({
       file_id: this.file_id,
       user_id: this.user_id,
@@ -84,6 +88,19 @@ export class FileManagerService {
 
     return accessToken;
   }
+
+	async checkAccessToken(fileId: string, token: string) : Promise<boolean> {
+		const redisKey = FileAccessToken.getRedisKey(token);
+		const rawAccessToken = await this.redisService.client.GET(redisKey);
+		if (!rawAccessToken) {
+			throw new HttpErrors.UnprocessableEntity("Invalid token");
+		}
+		const accessToken = JSON.parse(rawAccessToken) as FileAccessToken;
+		if (accessToken.file_id !== fileId) {
+			throw new HttpErrors.Forbidden("Access denined");
+		}
+		return true;
+	}
 
   async getFileInfo(id: string, userId: string): Promise<FileInfoDTO> {
     const file = await this.fileStorageService.getFileById(id);

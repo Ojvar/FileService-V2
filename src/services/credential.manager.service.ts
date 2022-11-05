@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {ObjectId} from 'bson';
 import {STORAGE_DIRECTORY} from '../interceptors';
