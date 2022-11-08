@@ -30,7 +30,7 @@ export class FileDownloaderController {
       schema: {pattern: OBJECT_ID_PATTERN},
     })
     id: string,
-		@param.query.string("token", {description: "Access token", required: true}) accessToken: string
+		@param.query.string("token", {description: "Access token", required: false}) accessToken = ''
   ): Promise<Response> {
     const fileInfo = await this.fileRepository.getFileInfo(id);
 
