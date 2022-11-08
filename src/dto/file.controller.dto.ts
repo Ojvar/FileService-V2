@@ -32,7 +32,7 @@ export class FileInfoDTO extends Model {
   meta?: FileMeta;
 
   /* Covnert a "File" into "FileInfoDTO" */
-  static fromModel(data: File, accessToken: FileAccessToken): FileInfoDTO {
+  static fromModel(data: File, accessToken?: FileAccessToken | null): FileInfoDTO {
     return new FileInfoDTO({
       field_name: data.field_name,
       id: data.id,
@@ -42,7 +42,7 @@ export class FileInfoDTO extends Model {
       uploaded_at: data.uploaded.at,
       uploaded_by: data.uploaded.by,
       meta: data.meta,
-      access_token: accessToken.token,
+      access_token: accessToken?.token,
     });
   }
 

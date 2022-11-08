@@ -104,7 +104,7 @@ export class FileManagerService {
 
   async getFileInfo(id: string, userId: string): Promise<FileInfoDTO> {
     const file = await this.fileStorageService.getFileById(id);
-    const accessToken = await this.generateAccessToken(id, userId);
+    const accessToken = userId ? await this.generateAccessToken(id, userId) : null;
     return FileInfoDTO.fromModel(file, accessToken);
   }
 

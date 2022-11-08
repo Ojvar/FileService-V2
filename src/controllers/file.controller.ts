@@ -6,9 +6,14 @@ import {
   getModelSchemaRef,
   param,
   requestBody,
-	post,
+  post,
 } from '@loopback/rest';
-import {FileInfoDTO, FileInfoListDTO, FILE_MANAGER_SERVICE_DTO, OBJECT_ID_PATTERN} from '../dto';
+import {
+  FileInfoDTO,
+  FileInfoListDTO,
+  FILE_MANAGER_SERVICE_DTO,
+  OBJECT_ID_PATTERN,
+} from '../dto';
 import {FileMeta} from '../models';
 import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
@@ -30,7 +35,7 @@ export class FileController {
     },
   })
   async searchMetadata(
-		@param.path.string("user_id") userId: string,
+    @param.path.string('user_id') userId: string,
     @requestBody() body: FileMeta,
   ): Promise<FileInfoListDTO> {
     /* TODO: CHECK CLIENT PERMISSION -- JWT CHECK */
@@ -87,7 +92,7 @@ export class FileController {
 
   /* TODO: CHECK USER JWT -- AUTHORIZATION */
   /* user_id Should fetch from JWT token */
-  @get('/files/{id}/{user_id}', {
+  @get('/files/{id}', {
     tags: ['files'],
     description: 'Get file info',
     summary: 'Get file info',
@@ -104,8 +109,8 @@ export class FileController {
       schema: {pattern: OBJECT_ID_PATTERN},
     })
     id: string,
-    @param.path.string('user_id', {description: 'User id'})
-    userId: string,
+    @param.query.string('user_id', {required: false, description: 'User id'})
+    userId = '',
   ): Promise<FileInfoDTO> {
     return this.fileManagerService.getFileInfo(id, userId);
   }
