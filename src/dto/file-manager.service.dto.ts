@@ -6,7 +6,7 @@ import {StringArray} from '../types';
 export const OBJECT_ID_PATTERN = /^[0-9a-fA-F]{24}$/.source;
 
 export namespace FILE_MANAGER_SERVICE_DTO {
-  @model()
+	@model()
   export class SearchMetadataDTO {
     @property({
       type: 'object',

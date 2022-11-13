@@ -9,10 +9,38 @@ import {
   requestBody,
 } from '@loopback/rest';
 import {FILE_MANAGER_SERVICE_DTO} from '../dto';
-import {Credential} from '../models';
+import {Credential, UploadedFile} from '../models';
 import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
 export class CertificateController {
+  @patch('/token/{token}/{user_id}/{file_id}', {
+    tags: ['credential'],
+    description: 'Update uploaded file meta-data',
+    summary: 'Update uploaded file meta-data',
+    responses: {
+      200: {
+        description: 'Uploaded File Data',
+        content: {
+          'application/json': {schema: getModelSchemaRef(UploadedFile)},
+        },
+      },
+    },
+  })
+  async updateMetadata(
+    @requestBody({description: 'Data for add/remove fields', required: true})
+    body: FILE_MANAGER_SERVICE_DTO.UpdateMetadataDTO,
+    @param.path.string('user_id') userId: string,
+    @param.path.string('token') token: string,
+    @param.path.string('file_id') fileId: string,
+  ): Promise<UploadedFile> {
+    return this.fileManagerService.certificateEditMetadata(
+      token,
+      userId,
+      fileId,
+      body,
+    );
+  }
+
   /* TODO: CHECK USER JWT - FOR AUTHORIZATION */
   @get('/token/{token}/{user_id}', {
     description: 'Get credential data',

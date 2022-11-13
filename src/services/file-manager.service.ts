@@ -22,15 +22,15 @@ export class FileAccessToken extends Model {
   file_id: string;
   expire_time: number;
 
-	static getRedisKey(token: string) : string {
+  static getRedisKey(token: string): string {
     return `fat_${token}`;
-	}
+  }
 
   get redisKey(): string {
     return FileAccessToken.getRedisKey(this.token);
   }
 
-	toJson(): string {
+  toJson(): string {
     return JSON.stringify({
       file_id: this.file_id,
       user_id: this.user_id,
@@ -45,6 +45,22 @@ export class FileAccessToken extends Model {
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
+  async certificateEditMetadata(
+    token: string,
+    userId: string,
+    fileId: string,
+    data: FILE_MANAGER_SERVICE_DTO.UpdateMetadataDTO,
+  ): Promise<UploadedFile> {
+    const credential = await this.getCredential(token, userId);
+    const uploadedFile = credential.updateMetadata(
+      fileId,
+      data.appended_fields,
+      data.removed_fileds,
+    );
+    await this.storeCredential(credential);
+    return uploadedFile;
+  }
+
   async searchMetadata(
     metadata: FileMeta,
     userId: string,
@@ -89,22 +105,24 @@ export class FileManagerService {
     return accessToken;
   }
 
-	async checkAccessToken(fileId: string, token: string) : Promise<boolean> {
-		const redisKey = FileAccessToken.getRedisKey(token);
-		const rawAccessToken = await this.redisService.client.GET(redisKey);
-		if (!rawAccessToken) {
-			throw new HttpErrors.UnprocessableEntity("Invalid token");
-		}
-		const accessToken = JSON.parse(rawAccessToken) as FileAccessToken;
-		if (accessToken.file_id !== fileId) {
-			throw new HttpErrors.Forbidden("Access denined");
-		}
-		return true;
-	}
+  async checkAccessToken(fileId: string, token: string): Promise<boolean> {
+    const redisKey = FileAccessToken.getRedisKey(token);
+    const rawAccessToken = await this.redisService.client.GET(redisKey);
+    if (!rawAccessToken) {
+      throw new HttpErrors.UnprocessableEntity('Invalid token');
+    }
+    const accessToken = JSON.parse(rawAccessToken) as FileAccessToken;
+    if (accessToken.file_id !== fileId) {
+      throw new HttpErrors.Forbidden('Access denined');
+    }
+    return true;
+  }
 
   async getFileInfo(id: string, userId: string): Promise<FileInfoDTO> {
     const file = await this.fileStorageService.getFileById(id);
-    const accessToken = userId ? await this.generateAccessToken(id, userId) : null;
+    const accessToken = userId
+      ? await this.generateAccessToken(id, userId)
+      : null;
     return FileInfoDTO.fromModel(file, accessToken);
   }
 
@@ -117,7 +135,7 @@ export class FileManagerService {
     }
     const credential = Credential.fromJsonString(rawCredential);
     if (!credential.isValid()) {
-      throw new HttpErrors.UnprocessableEntity('Invalid token');
+      throw new HttpErrors.UnprocessableEntity('Invalid certificate');
     }
     return credential;
   }

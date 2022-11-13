@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {Model, model, property} from '@loopback/repository';
+import {HttpErrors} from '@loopback/rest';
 import {ObjectId} from 'bson';
 import {FILE_MANAGER_SERVICE_DTO} from '../dto';
+import {StringArray} from '../types';
 import {FileMeta} from './file.model';
 
 export enum EnumTokenStatus {
@@ -115,6 +117,36 @@ export type UploadedFiles = UploadedFile[];
 
 @model()
 export class Credential extends Model {
+  updateMetadata(
+    fileId: string,
+    appendedFields: FileMeta,
+    removedFields: StringArray,
+  ): UploadedFile {
+    const uploadedFile = this.uploaded_files.find(x => x.id === fileId);
+    if (!uploadedFile) {
+      throw new HttpErrors.UnprocessableEntity('Invalid uploaded file id');
+    }
+
+    if (uploadedFile.meta) {
+      removedFields.forEach((field: string) => {
+        if (uploadedFile.meta?.[field]) {
+          delete uploadedFile.meta[field];
+        }
+      });
+    } else {
+      uploadedFile.meta = {};
+    }
+
+    const keys = Object.keys(appendedFields);
+    keys.forEach((key: string) => {
+      if (uploadedFile.meta) {
+        uploadedFile.meta[key] = appendedFields[key];
+      }
+    });
+
+    return uploadedFile;
+  }
+
   markAsCommited() {
     this.status = EnumTokenStatus.COMMITED;
   }
