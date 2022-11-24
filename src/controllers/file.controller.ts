@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {inject, intercept} from '@loopback/core';
-import {repository} from '@loopback/repository';
+import { inject, intercept } from '@loopback/core';
+import { repository } from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -13,13 +13,13 @@ import {
   ResponseObject,
   RestBindings,
 } from '@loopback/rest';
-import {FILE_DTO, getServerUrl} from 'qeng-common';
+import { FILE_DTO, getServerUrl, SECURITY_ENUM } from 'qeng-common';
 // import debugFactory from 'debug';
-import {protect} from '../interceptors';
-import {FileService} from '../keys';
-import {EnumRequestTokenStatus, File, FileData, RequestToken} from '../models';
-import {FileRepository} from '../repositories';
-import {RedisService} from '../services';
+import { protect } from '../interceptors';
+import { FileService } from '../keys';
+import { EnumRequestTokenStatus, File, FileData, RequestToken } from '../models';
+import { FileRepository } from '../repositories';
+import { RedisService } from '../services';
 
 type FilesListResult = Record<string, FILE_DTO.FileItemDTO>;
 
@@ -27,16 +27,16 @@ type FilesListResult = Record<string, FILE_DTO.FileItemDTO>;
 const FileResponseContent: ResponseObject = {
   content: {
     'application/json': {
-      schema: {type: 'array', items: getModelSchemaRef(FILE_DTO.FileItemDTO)},
+      schema: { type: 'array', items: getModelSchemaRef(FILE_DTO.FileItemDTO) },
     },
   },
   description: '',
 };
 
+@intercept(protect(SECURITY_ENUM.EnumRoles.NO_BODY))
 export class FileController {
-  constructor(@inject(FileService.REDIS_SERVICE) private redis: RedisService) {}
+  constructor(@inject(FileService.REDIS_SERVICE) private redis: RedisService) { }
 
-  @intercept(protect('realm:no-body'))
   @get('/files-list/{ref}')
   @response(200, FileResponseContent)
   async getRedisFiles(
@@ -63,7 +63,6 @@ export class FileController {
     return {};
   }
 
-  @intercept(protect('realm:no-body'))
   @post('/files-info')
   @response(200, FileResponseContent)
   async getDbFiles(
@@ -75,7 +74,7 @@ export class FileController {
         'application/json': {
           schema: {
             type: 'array',
-            items: {type: 'string'},
+            items: { type: 'string' },
             description: "File's id list",
           },
         },
@@ -83,12 +82,15 @@ export class FileController {
     })
     files: string[],
   ): Promise<FilesListResult> {
+    if (files.length === 0) {
+      return {};
+    }
     if (files.length > 50) {
       files = files.splice(0, 50);
     }
 
     const filesList = await filesRepo.find({
-      where: {id: {inq: files}, deleted: {eq: undefined}},
+      where: { id: { inq: files }, deleted: { eq: undefined } },
     });
 
     serverUrl = getServerUrl(req, serverUrl);

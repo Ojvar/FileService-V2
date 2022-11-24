@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {Request} from '@loopback/rest';
 import {Grant, Keycloak, Token} from 'keycloak-connect';
 

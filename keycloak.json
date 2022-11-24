@@ -1,8 +1,12 @@
 {
   "realm": "qeng",
-  "bearer-only": true,
-  "auth-server-url": "http://knode4.qeng.ir:5050/auth/",
+  "auth-server-url": "https://knode5.qeng.ir:8443/",
   "ssl-required": "external",
   "resource": "file-service",
-  "confidential-port": 0
+  "verify-token-audience": true,
+  "credentials": {
+    "secret": "0b33OMzWhcesAMHmJpqeITPZycJuswGn"
+  },
+  "confidential-port": 0,
+  "policy-enforcer": {}
 }

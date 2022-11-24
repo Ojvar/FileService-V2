@@ -133,7 +133,6 @@ export class TokenController extends BaseController {
 
           requestData.uploaded_files[key].id = savedFile.getId();
         } catch (err) {
-          /* TODO: LOG INTO LOGGER SERVICE */
           console.error(err);
         }
       }
