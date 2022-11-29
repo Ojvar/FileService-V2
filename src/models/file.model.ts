@@ -8,6 +8,7 @@ export enum EnumFileStatus {
 }
 
 export type FileMeta = Record<string, string | number>;
+export type FileMetaArray = Array<FileMeta>;
 
 @model()
 export class UploadData {

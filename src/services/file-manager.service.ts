@@ -3,7 +3,7 @@ import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {HttpErrors, Model, Request} from '@loopback/rest';
 import {ObjectId} from 'bson';
 import {FileInfoDTO, FileInfoListDTO, FILE_MANAGER_SERVICE_DTO} from '../dto';
-import {Credential, File, FileMeta, Files, UploadedFile} from '../models';
+import {Credential, File, FileMeta, FileMetaArray, Files, UploadedFile} from '../models';
 import {
   CredentialManagerService,
   CREDENTIAL_MANAGER_SERVICE,
@@ -59,6 +59,21 @@ export class FileManagerService {
     );
     await this.storeCredential(credential);
     return uploadedFile;
+  }
+
+  async searchMetadataAdvance(
+    metadata: FileMetaArray,
+    userId: string,
+  ): Promise<FileInfoListDTO> {
+    const searchResult: Files = await this.fileStorageService.filterByMetadataAdvance(
+      metadata,
+    );
+    const result: FileInfoListDTO = [];
+    for (const file of searchResult) {
+      const token = await this.generateAccessToken(file.getId(), userId);
+      result.push(FileInfoDTO.fromModel(file, token));
+    }
+    return result;
   }
 
   async searchMetadata(

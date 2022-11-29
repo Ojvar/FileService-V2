@@ -1,4 +1,4 @@
-import {inject} from '@loopback/core';
+import { inject } from '@loopback/core';
 import {
   del,
   get,
@@ -7,6 +7,7 @@ import {
   param,
   requestBody,
   post,
+  HttpErrors,
 } from '@loopback/rest';
 import {
   FileInfoDTO,
@@ -14,10 +15,41 @@ import {
   FILE_MANAGER_SERVICE_DTO,
   OBJECT_ID_PATTERN,
 } from '../dto';
-import {FileMeta} from '../models';
-import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
+import { FileMeta, FileMetaArray } from '../models';
+import { FileManagerService, FILE_MANAGER_SERVICE } from '../services';
 
 export class FileController {
+  /* TODO: CHECK USER JWT -- AUTHORIZATION */
+  @post('/files/find-by-meta-array/{user_id}', {
+    tags: ['files'],
+    description: 'Advance search in files metadata',
+    summary: 'Advance search in metadata',
+    responses: {
+      200: {
+        description: 'Files list',
+        content: {
+          'application/json': {
+            schema: { type: 'array', items: getModelSchemaRef(FileInfoDTO) },
+          },
+        },
+      },
+    },
+  })
+  async searchMetadataAdvance(
+    @param.path.string('user_id') userId: string,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: { type: 'array', items: { type: 'object' } },
+        },
+      },
+    })
+    body: FileMetaArray,
+  ): Promise<FileInfoListDTO> {
+    /* TODO: CHECK CLIENT PERMISSION -- JWT CHECK */
+    return this.fileManagerService.searchMetadataAdvance(body, userId);
+  }
+
   /* TODO: CHECK USER JWT -- AUTHORIZATION */
   @post('/files/find-by-meta/{user_id}', {
     tags: ['files'],
@@ -28,7 +60,7 @@ export class FileController {
         description: 'Files list',
         content: {
           'application/json': {
-            schmea: {type: 'array', items: getModelSchemaRef(FileInfoDTO)},
+            schema: { type: 'array', items: getModelSchemaRef(FileInfoDTO) },
           },
         },
       },
@@ -47,12 +79,12 @@ export class FileController {
     tags: ['files'],
     description: 'Update metadata of a file',
     summary: 'Update file metadata',
-    responses: {204: {description: 'Metadata updated successfully'}},
+    responses: { 204: { description: 'Metadata updated successfully' } },
   })
   async updateMetadata(
     @param.path.string('id', {
       description: 'File id',
-      schema: {pattern: OBJECT_ID_PATTERN},
+      schema: { pattern: OBJECT_ID_PATTERN },
     })
     id: string,
     @requestBody() body: FILE_MANAGER_SERVICE_DTO.UpdateMetadataDTO,
@@ -69,17 +101,17 @@ export class FileController {
     responses: {
       200: {
         description: 'File access token',
-        content: {'text/plain': {schema: {type: 'string'}}},
+        content: { 'text/plain': { schema: { type: 'string' } } },
       },
     },
   })
   async generateFileAccessToken(
     @param.path.string('id', {
       description: 'File id',
-      schema: {pattern: OBJECT_ID_PATTERN},
+      schema: { pattern: OBJECT_ID_PATTERN },
     })
     id: string,
-    @param.path.string('user_id', {description: 'User id'})
+    @param.path.string('user_id', { description: 'User id' })
     userId: string,
   ): Promise<string> {
     /* TODO: CHECK CLIENT PERMISSION -- JWT CHECK */
@@ -99,17 +131,17 @@ export class FileController {
     responses: {
       200: {
         description: 'File info',
-        content: {'application/json': {schema: getModelSchemaRef(FileInfoDTO)}},
+        content: { 'application/json': { schema: getModelSchemaRef(FileInfoDTO) } },
       },
     },
   })
   async getFileInfo(
     @param.path.string('id', {
       description: 'File id',
-      schema: {pattern: OBJECT_ID_PATTERN},
+      schema: { pattern: OBJECT_ID_PATTERN },
     })
     id: string,
-    @param.query.string('user_id', {required: false, description: 'User id'})
+    @param.query.string('user_id', { required: false, description: 'User id' })
     userId = '',
   ): Promise<FileInfoDTO> {
     return this.fileManagerService.getFileInfo(id, userId);
@@ -120,7 +152,7 @@ export class FileController {
     tags: ['files'],
     description: 'Remove file',
     summary: 'Remove file',
-    responses: {204: {description: 'Remove successfully'}},
+    responses: { 204: { description: 'Remove successfully' } },
   })
   async removeFile(@param.path.string('id') id: string): Promise<void> {
     return this.fileManagerService.removeFile(id);
@@ -129,5 +161,5 @@ export class FileController {
   constructor(
     @inject(FILE_MANAGER_SERVICE)
     private fileManagerService: FileManagerService,
-  ) {}
+  ) { }
 }
