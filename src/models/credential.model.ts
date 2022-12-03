@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {Model, model, property} from '@loopback/repository';
-import {HttpErrors} from '@loopback/rest';
-import {ObjectId} from 'bson';
-import {FILE_MANAGER_SERVICE_DTO} from '../dto';
-import {StringArray} from '../types';
-import {FileMeta} from './file.model';
+import { Model, model, property } from '@loopback/repository';
+import { HttpErrors } from '@loopback/rest';
+import { ObjectId } from 'bson';
+import { FILE_MANAGER_SERVICE_DTO } from '../dto';
+import { StringArray } from '../types';
+import { FileMeta } from './file.model';
 
 export enum EnumTokenStatus {
   NORMAL = 0,
@@ -12,40 +12,40 @@ export enum EnumTokenStatus {
   REJECTED = 2,
 }
 
-@model({jsonSchema: {description: 'Allowed file item'}})
+@model({ jsonSchema: { description: 'Allowed file item' } })
 export class AllowedFile {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {description: 'Field name', minLength: 1, maxLength: 50},
+    jsonSchema: { description: 'Field name', minLength: 1, maxLength: 50 },
   })
   field: string;
 
   @property({
     type: 'number',
     required: true,
-    jsonSchema: {description: 'Maximum file size in bytes', minimum: 1},
+    jsonSchema: { description: 'Maximum file size in bytes', minimum: 1 },
   })
   max_size: number;
 
   @property({
     type: 'string',
     required: false,
-    jsonSchema: {description: 'MIME type'},
+    jsonSchema: { description: 'MIME type' },
   })
   mime_type?: string;
 
   @property({
     type: 'string',
     required: false,
-    jsonSchema: {description: 'File id to replace with'},
+    jsonSchema: { description: 'File id to replace with' },
   })
   replace_with?: string;
 
   @property({
     type: 'boolean',
     required: true,
-    jsonSchema: {description: 'Set Access level to private'},
+    jsonSchema: { description: 'Set Access level to private' },
   })
   is_private: boolean;
 }
@@ -56,35 +56,35 @@ export class UploadedFile {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {description: 'File id'},
+    jsonSchema: { description: 'File id' },
   })
   id: string;
 
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {description: 'File fieldname'},
+    jsonSchema: { description: 'File fieldname' },
   })
   fieldname: string;
 
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {description: 'File mimetype'},
+    jsonSchema: { description: 'File mimetype' },
   })
   mimetype: string;
 
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {description: 'File originalname'},
+    jsonSchema: { description: 'File originalname' },
   })
   originalname: string;
 
   @property({
     type: 'number',
     required: true,
-    jsonSchema: {description: 'File size'},
+    jsonSchema: { description: 'File size' },
   })
   size: number;
 
@@ -94,7 +94,7 @@ export class UploadedFile {
     default: {},
     jsonSchema: {
       description: 'File meta data',
-      additionalProperties: {type: ['string', 'number']},
+      additionalProperties: { type: ['string', 'number'] },
     },
   })
   meta?: FileMeta;
@@ -102,14 +102,14 @@ export class UploadedFile {
   @property({
     type: 'boolean',
     required: true,
-    jsonSchema: {description: 'Set file access level'},
+    jsonSchema: { description: 'Set file access level' },
   })
   is_private?: boolean;
 
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {description: 'File owner'},
+    jsonSchema: { description: 'File owner' },
   })
   owner: string;
 }
@@ -117,6 +117,15 @@ export type UploadedFiles = UploadedFile[];
 
 @model()
 export class Credential extends Model {
+  setMetadata(field: string, meta?: FileMeta): UploadedFile {
+    const uploadedFile = this.uploaded_files.find(x => x.fieldname === field);
+    if (!uploadedFile) {
+      throw new HttpErrors.UnprocessableEntity('Invalid field');
+    }
+    uploadedFile.meta = meta;
+    return uploadedFile;
+  }
+
   updateMetadata(
     fileId: string,
     appendedFields: FileMeta,
@@ -219,30 +228,30 @@ export class Credential extends Model {
     this.uploaded_files = this.uploaded_files ?? [];
   }
 
-  @property({type: 'string', id: true, generated: false, required: true})
+  @property({ type: 'string', id: true, generated: false, required: true })
   id: string;
-  @property({type: 'string', required: true}) allowed_user: string;
+  @property({ type: 'string', required: true }) allowed_user: string;
 
   @property.array(AllowedFile, {
     required: true,
-    jsonSchema: {description: 'Allowed files list'},
+    jsonSchema: { description: 'Allowed files list' },
   })
   allowed_files: AllowedFiles;
 
   @property.array(UploadedFile, {
     required: false,
     default: [],
-    jsonSchema: {description: 'Uploaded files list'},
+    jsonSchema: { description: 'Uploaded files list' },
   })
   uploaded_files: UploadedFiles;
 
   @property({
     type: 'number',
-    jsonSchema: {description: 'Token expire time', type: 'number'},
+    jsonSchema: { description: 'Token expire time', type: 'number' },
   })
   expire_time: number;
 
-  @property({type: 'date', required: true}) created_at: string;
+  @property({ type: 'date', required: true }) created_at: string;
   @property({
     type: 'number',
     required: true,

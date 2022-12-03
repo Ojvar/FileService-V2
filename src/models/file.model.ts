@@ -49,6 +49,10 @@ export class File extends Entity {
     return this.status === EnumFileStatus.ACTIVE;
   }
 
+  replaceMetadata(meta?: FileMeta) {
+    this.meta = meta;
+  }
+
   updateMetadata(appendedFields: FileMeta, deletedFields: StringArray = []) {
     if (this.meta) {
       deletedFields.forEach((field: string) => {

@@ -18,6 +18,31 @@ import {FileMeta, FileMetaArray} from '../models';
 import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
 export class FileController {
+  constructor(
+    @inject(FILE_MANAGER_SERVICE)
+    private fileManagerService: FileManagerService,
+  ) {}
+
+  /* TODO: CHECK USER JWT -- AUTHORIZATION */
+  @patch('/files/edit/{file_id}/{user_id}', {
+    tags: ['files'],
+    description: 'Edit a file',
+    summary: 'Edit a file',
+    responses: {204: {description: 'File edited successfully'}},
+  })
+  async editFile(
+    @param.path.string('file_id', {
+      description: 'File id',
+      schema: {pattern: OBJECT_ID_PATTERN},
+    })
+    fileId: string,
+    @param.path.string('user_id') userId: string,
+    @requestBody() body: FILE_MANAGER_SERVICE_DTO.EditFileDTO,
+  ): Promise<void> {
+    /* TODO: CHECK CLIENT PERMISSION -- JWT CHECK */
+    return this.fileManagerService.editFile(fileId, body, userId);
+  }
+
   /* TODO: CHECK USER JWT -- AUTHORIZATION */
   @post('/files/find-by-meta-array/{user_id}', {
     tags: ['files'],
@@ -156,9 +181,4 @@ export class FileController {
   async removeFile(@param.path.string('id') id: string): Promise<void> {
     return this.fileManagerService.removeFile(id);
   }
-
-  constructor(
-    @inject(FILE_MANAGER_SERVICE)
-    private fileManagerService: FileManagerService,
-  ) {}
 }

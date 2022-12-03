@@ -3,7 +3,14 @@ import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {HttpErrors, Model, Request} from '@loopback/rest';
 import {ObjectId} from 'bson';
 import {FileInfoDTO, FileInfoListDTO, FILE_MANAGER_SERVICE_DTO} from '../dto';
-import {Credential, File, FileMeta, FileMetaArray, Files, UploadedFile} from '../models';
+import {
+  Credential,
+  File,
+  FileMeta,
+  FileMetaArray,
+  Files,
+  UploadedFile,
+} from '../models';
 import {
   CredentialManagerService,
   CREDENTIAL_MANAGER_SERVICE,
@@ -45,6 +52,34 @@ export class FileAccessToken extends Model {
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
+  constructor(
+    @inject(REDIS_SERVICE) private redisService: RedisService,
+    @inject(FILE_SERVICE) private fileService: FileService,
+    @inject(FILE_STORAGE_SERVICE)
+    private fileStorageService: FileStorageService,
+    @inject(CREDENTIAL_MANAGER_SERVICE)
+    private credentialManagerService: CredentialManagerService,
+  ) {}
+
+  async editFile(
+    fileId: string,
+    body: FILE_MANAGER_SERVICE_DTO.EditFileDTO,
+    userId: string,
+  ): Promise<void> {
+    /* Load token */
+    //TODO: CHECK CREDENTIAL
+    const credential = await this.getCredential(body.token_id, userId);
+    console.log(credential);
+
+    /* Load file */
+    const file = await this.fileStorageService.getFileById(fileId);
+    credential.setMetadata(file.field_name, file.meta);
+    await this.storeCredential(credential);
+
+    /* Commit token */
+    await this.commit(body.token_id, userId);
+  }
+
   async certificateEditMetadata(
     token: string,
     userId: string,
@@ -65,9 +100,8 @@ export class FileManagerService {
     metadata: FileMetaArray,
     userId: string,
   ): Promise<FileInfoListDTO> {
-    const searchResult: Files = await this.fileStorageService.filterByMetadataAdvance(
-      metadata,
-    );
+    const searchResult: Files =
+      await this.fileStorageService.filterByMetadataAdvance(metadata);
     const result: FileInfoListDTO = [];
     for (const file of searchResult) {
       const token = await this.generateAccessToken(file.getId(), userId);
@@ -266,13 +300,4 @@ export class FileManagerService {
       owner: '',
     };
   }
-
-  constructor(
-    @inject(REDIS_SERVICE) private redisService: RedisService,
-    @inject(FILE_SERVICE) private fileService: FileService,
-    @inject(FILE_STORAGE_SERVICE)
-    private fileStorageService: FileStorageService,
-    @inject(CREDENTIAL_MANAGER_SERVICE)
-    private credentialManagerService: CredentialManagerService,
-  ) {}
 }
