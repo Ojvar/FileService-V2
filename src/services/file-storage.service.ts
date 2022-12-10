@@ -1,34 +1,30 @@
-import { BindingKey, BindingScope, inject, injectable } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { HttpErrors } from '@loopback/rest';
-import { STORAGE_DIRECTORY } from '../interceptors';
-import { Credential, File, FileMeta, FileMetaArray, Files } from '../models';
-import { FileRepository } from '../repositories';
-import { FileService, FILE_SERVICE } from './file.service';
+import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {HttpErrors} from '@loopback/rest';
+import {STORAGE_DIRECTORY} from '../interceptors';
+import {Credential, File, FileMeta, FileMetaArray, Files} from '../models';
+import {FileRepository} from '../repositories';
+import {FileService, FILE_SERVICE} from './file.service';
 
 export const FILE_STORAGE_SERVICE = BindingKey.create<FileStorageService>(
   'services.FileStorageService',
 );
 
-@injectable({ scope: BindingScope.TRANSIENT })
+@injectable({scope: BindingScope.TRANSIENT})
 export class FileStorageService {
   async filterByMetadataAdvance(metadata: FileMetaArray): Promise<Files> {
     const filter: object[] = [];
-
     metadata.forEach(metaItem => {
       const metaItemFilter = Object.keys(metaItem).reduce(
         (result: Record<string, unknown>, key: string) => {
-          return (result[`meta.${key}`] = metaItem[key]), result;
+          result[`meta.${key}`] = {$regex: metaItem[key], $options: 'i'};
+          return result;
         },
         {},
       );
-
       filter.push(metaItemFilter);
     });
-
-    console.log(filter)
-
-    return this.fileRepository.find({ where: { or: filter } });
+    return this.fileRepository.find({where: {or: filter}});
   }
 
   async filterByMetadata(metadata: FileMeta): Promise<Files> {
@@ -39,7 +35,7 @@ export class FileStorageService {
       },
       {},
     );
-    return this.fileRepository.find({ where: filter });
+    return this.fileRepository.find({where: filter});
   }
 
   async updateFile(file: File): Promise<void> {
@@ -98,5 +94,5 @@ export class FileStorageService {
     @inject(STORAGE_DIRECTORY) private storagePath: string,
     @inject(FILE_SERVICE) private fileService: FileService,
     @repository(FileRepository) private fileRepository: FileRepository,
-  ) { }
+  ) {}
 }

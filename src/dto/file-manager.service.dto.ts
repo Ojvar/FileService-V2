@@ -6,7 +6,7 @@ import {StringArray} from '../types';
 export const OBJECT_ID_PATTERN = /^[0-9a-fA-F]{24}$/.source;
 
 export namespace FILE_MANAGER_SERVICE_DTO {
-	@model()
+  @model()
   export class SearchMetadataDTO {
     @property({
       type: 'object',
@@ -22,6 +22,12 @@ export namespace FILE_MANAGER_SERVICE_DTO {
     appended_fields: FileMeta;
     @property.array(String, {required: false, default: []})
     removed_fileds: StringArray;
+  }
+
+  @model()
+  export class EditFileDTO {
+    @property({type: 'string'}) token_id: string;
+    // @property() meta?: FileMeta;
   }
 
   @model({jsonSchema: {description: 'Get token request'}})
