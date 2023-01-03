@@ -3,30 +3,30 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-import {BootMixin} from '@loopback/boot';
-import {ApplicationConfig} from '@loopback/core';
-import {CronComponent} from '@loopback/cron';
-import {RepositoryMixin} from '@loopback/repository';
-import {RestApplication} from '@loopback/rest';
+import { BootMixin } from '@loopback/boot';
+import { ApplicationConfig } from '@loopback/core';
+import { CronComponent } from '@loopback/cron';
+import { RepositoryMixin } from '@loopback/repository';
+import { RestApplication } from '@loopback/rest';
 import {
   RestExplorerBindings,
   RestExplorerComponent,
 } from '@loopback/rest-explorer';
-import {ServiceMixin} from '@loopback/service-proxy';
-import {ObjectId} from 'bson';
-import multer from 'multer';
-import path from 'path';
-import {CronJobComponent} from './components';
-import {PRUNE_EXPIRED_CREDENTIALS_CRONJOB_CONFIG} from './crontabs';
-import {FILE_STORAGE_DATASOURCE_CONFIG} from './datasources';
-import {FileHandlerInterceptor, STORAGE_DIRECTORY} from './interceptors';
-import {MySequence} from './sequence';
+import { ServiceMixin } from '@loopback/service-proxy';
+import { ObjectId } from 'bson';
+import { Options, diskStorage } from 'multer';
+import { join, resolve } from 'path';
+import { CronJobComponent } from './components';
+import { PRUNE_EXPIRED_CREDENTIALS_CRONJOB_CONFIG } from './crontabs';
+import { FILE_STORAGE_DATASOURCE_CONFIG } from './datasources';
+import { FileHandlerInterceptor, STORAGE_DIRECTORY } from './interceptors';
+import { MySequence } from './sequence';
 import {
   CREDENTIAL_MANAGER_SERVICE_CONFIG,
   REDIS_SERVICE_CONFIG,
 } from './services';
 
-export {ApplicationConfig};
+export { ApplicationConfig };
 
 export class FileServiceApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
@@ -38,10 +38,10 @@ export class FileServiceApplication extends BootMixin(
     this.sequence(MySequence);
 
     // Set up default home page
-    this.static('/', path.join(__dirname, '../public'));
+    this.static('/', join(__dirname, '../public'));
 
     // Customize @loopback/rest-explorer configuration here
-    this.configure(RestExplorerBindings.COMPONENT).to({path: '/explorer'});
+    this.configure(RestExplorerBindings.COMPONENT).to({ path: '/explorer' });
     this.component(RestExplorerComponent);
 
     this.projectRoot = __dirname;
@@ -84,7 +84,7 @@ export class FileServiceApplication extends BootMixin(
   }
 
   private configCredentialManager() {
-    const {CREDENTIAL_MANAGER_BUCKET_INTERVAL} = process.env;
+    const { CREDENTIAL_MANAGER_BUCKET_INTERVAL } = process.env;
     this.bind(CREDENTIAL_MANAGER_SERVICE_CONFIG).to({
       bucketInterval: +CREDENTIAL_MANAGER_BUCKET_INTERVAL * 1000,
     });
@@ -94,17 +94,17 @@ export class FileServiceApplication extends BootMixin(
     this.component(CronComponent);
     this.component(CronJobComponent);
 
-    const {PRUNE_EXPIRED_CREDENTIALS_CRON_TIME} = process.env;
+    const { PRUNE_EXPIRED_CREDENTIALS_CRON_TIME } = process.env;
     this.bind(PRUNE_EXPIRED_CREDENTIALS_CRONJOB_CONFIG).to({
       cronTime: PRUNE_EXPIRED_CREDENTIALS_CRON_TIME,
     });
   }
 
   private configRedis() {
-    const {REDIS_HOST, REDIS_DB, REDIS_PORT, REDIS_USERNAME, REDIS_PASSWORD} =
+    const { REDIS_HOST, REDIS_DB, REDIS_PORT, REDIS_USERNAME, REDIS_PASSWORD } =
       process.env;
     this.bind(REDIS_SERVICE_CONFIG).to({
-      socket: {host: REDIS_HOST ?? 'localhost', port: +(REDIS_PORT ?? '6379')},
+      socket: { host: REDIS_HOST ?? 'localhost', port: +(REDIS_PORT ?? '6379') },
       username: REDIS_USERNAME,
       password: REDIS_PASSWORD,
       database: +(REDIS_DB ?? '0'),
@@ -112,15 +112,16 @@ export class FileServiceApplication extends BootMixin(
   }
 
   configMulter() {
-    const {FILE_STORAGE, MAX_FILE_SIZE} = process.env;
-    const destination = path.resolve(FILE_STORAGE || path.resolve('.sandbox'));
+    const { FILE_STORAGE, MAX_FILE_SIZE } = process.env;
+    const destination = resolve(FILE_STORAGE || resolve('.sandbox'));
     this.bind(STORAGE_DIRECTORY).to(destination);
 
-    const multerOptions: multer.Options = {
-      limits: {fileSize: +(MAX_FILE_SIZE ?? '2097152')},
-      storage: multer.diskStorage({
+    const multerOptions: Options = {
+      limits: { fileSize: +(MAX_FILE_SIZE ?? '2097152') },
+      storage: diskStorage({
         destination,
-        filename: (req, file, cb) => cb(null, new ObjectId().toHexString()),
+        filename: (_req: unknown, _file: unknown, cb: Function) =>
+          cb(null, new ObjectId().toHexString()),
       }),
     };
     this.configure(FileHandlerInterceptor.BINDING_KEY).to(multerOptions);
