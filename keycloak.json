@@ -1,0 +1,10 @@
+{
+  "realm": "qeng",
+  "auth-server-url": "https://knode5.qeng.ir:8443/",
+  "ssl-required": "external",
+  "resource": "file-service",
+  "credentials": {
+    "secret": "PwV6endjH8IRX3InOzgOXOJ5iUjbNEh8"
+  },
+  "confidential-port": 0
+}

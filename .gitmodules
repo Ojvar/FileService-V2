@@ -1,0 +1,3 @@
+[submodule "src/lib-keycloak"]
+	path = src/lib-keycloak
+	url = https://oauth2:_6ww-F15riCpYqWScKBb@gitlab.qeng.ir/qeng/lib-keycloak.git

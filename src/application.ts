@@ -20,7 +20,7 @@ import { CronJobComponent } from './components';
 import { PRUNE_EXPIRED_CREDENTIALS_CRONJOB_CONFIG } from './crontabs';
 import { FILE_STORAGE_DATASOURCE_CONFIG } from './datasources';
 import { FileHandlerInterceptor, STORAGE_DIRECTORY } from './interceptors';
-import { MySequence } from './sequence';
+import { KCAuthenticationComponent, KeycloakComponent, KeycloakSequence } from './lib-keycloak/src';
 import {
   CREDENTIAL_MANAGER_SERVICE_CONFIG,
   REDIS_SERVICE_CONFIG,
@@ -33,9 +33,6 @@ export class FileServiceApplication extends BootMixin(
 ) {
   constructor(options: ApplicationConfig = {}) {
     super(options);
-
-    // Set up the custom sequence
-    this.sequence(MySequence);
 
     // Set up default home page
     this.static('/', join(__dirname, '../public'));
@@ -57,11 +54,18 @@ export class FileServiceApplication extends BootMixin(
   }
 
   configApp() {
+    this.configKeycloak();
     this.configCredentialManager();
     this.configCronJobs();
     this.configMulter();
     this.configRedis();
     this.configFileStorage();
+  }
+
+  private configKeycloak(){
+    this.sequence(KeycloakSequence);
+    this.component(KeycloakComponent);
+    this.component(KCAuthenticationComponent);
   }
 
   private configFileStorage() {

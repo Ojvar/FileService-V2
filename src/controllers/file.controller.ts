@@ -1,4 +1,4 @@
-import {inject} from '@loopback/core';
+import { inject, intercept } from '@loopback/core';
 import {
   del,
   get,
@@ -7,6 +7,7 @@ import {
   patch,
   post,
   requestBody,
+  writeResultToResponse,
 } from '@loopback/rest';
 import {
   FileInfoDTO,
@@ -14,37 +15,44 @@ import {
   FILE_MANAGER_SERVICE_DTO,
   OBJECT_ID_PATTERN,
 } from '../dto';
-import {FileMeta, FileMetaArray} from '../models';
-import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
+import { SECURITY_ROLES } from '../keys';
+import {
+  KeycloakSecurity,
+  KEYCLOAK_SECURITY_SERVICE,
+  protect,
+} from '../lib-keycloak/src';
+import { FileMeta, FileMetaArray } from '../models';
+import { FileManagerService, FILE_MANAGER_SERVICE } from '../services';
 
 export class FileController {
   constructor(
     @inject(FILE_MANAGER_SERVICE)
     private fileManagerService: FileManagerService,
-  ) {}
+    @inject(KEYCLOAK_SECURITY_SERVICE)
+    private keycloakSecurityService: KeycloakSecurity,
+  ) { }
 
-  /* TODO: CHECK USER JWT -- AUTHORIZATION */
-  @patch('/files/edit/{file_id}/{user_id}', {
+  @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
+  @patch('/files/edit/{file_id}', {
     tags: ['files'],
     description: 'Edit a file',
     summary: 'Edit a file',
-    responses: {204: {description: 'File edited successfully'}},
+    responses: { 204: { description: 'File edited successfully' } },
   })
   async editFile(
     @param.path.string('file_id', {
       description: 'File id',
-      schema: {pattern: OBJECT_ID_PATTERN},
+      schema: { pattern: OBJECT_ID_PATTERN },
     })
     fileId: string,
-    @param.path.string('user_id') userId: string,
     @requestBody() body: FILE_MANAGER_SERVICE_DTO.EditFileDTO,
   ): Promise<void> {
-    /* TODO: CHECK CLIENT PERMISSION -- JWT CHECK */
+    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
     return this.fileManagerService.editFile(fileId, body, userId);
   }
 
-  /* TODO: CHECK USER JWT -- AUTHORIZATION */
-  @post('/files/find-by-meta-array/{user_id}', {
+  @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
+  @post('/files/find-by-meta-array', {
     tags: ['files'],
     description: 'Advance search in files metadata',
     summary: 'Advance search in metadata',
@@ -53,29 +61,28 @@ export class FileController {
         description: 'Files list',
         content: {
           'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(FileInfoDTO)},
+            schema: { type: 'array', items: getModelSchemaRef(FileInfoDTO) },
           },
         },
       },
     },
   })
   async searchMetadataAdvance(
-    @param.path.string('user_id') userId: string,
     @requestBody({
       content: {
         'application/json': {
-          schema: {type: 'array', items: {type: 'object'}},
+          schema: { type: 'array', items: { type: 'object' } },
         },
       },
     })
     body: FileMetaArray,
   ): Promise<FileInfoListDTO> {
-    /* TODO: CHECK CLIENT PERMISSION -- JWT CHECK */
+    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
     return this.fileManagerService.searchMetadataAdvance(body, userId);
   }
 
-  /* TODO: CHECK USER JWT -- AUTHORIZATION */
-  @post('/files/find-by-meta/{user_id}', {
+  @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
+  @post('/files/find-by-meta', {
     tags: ['files'],
     description: 'Search in files metadata',
     summary: 'Search in metadata',
@@ -84,61 +91,57 @@ export class FileController {
         description: 'Files list',
         content: {
           'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(FileInfoDTO)},
+            schema: { type: 'array', items: getModelSchemaRef(FileInfoDTO) },
           },
         },
       },
     },
   })
   async searchMetadata(
-    @param.path.string('user_id') userId: string,
     @requestBody() body: FileMeta,
   ): Promise<FileInfoListDTO> {
-    /* TODO: CHECK CLIENT PERMISSION -- JWT CHECK */
+    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
     return this.fileManagerService.searchMetadata(body, userId);
   }
 
-  /* TODO: CHECK USER JWT -- AUTHORIZATION */
+  @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
   @patch('/files/{id}', {
     tags: ['files'],
     description: 'Update metadata of a file',
     summary: 'Update file metadata',
-    responses: {204: {description: 'Metadata updated successfully'}},
+    responses: { 204: { description: 'Metadata updated successfully' } },
   })
   async updateMetadata(
     @param.path.string('id', {
       description: 'File id',
-      schema: {pattern: OBJECT_ID_PATTERN},
+      schema: { pattern: OBJECT_ID_PATTERN },
     })
     id: string,
     @requestBody() body: FILE_MANAGER_SERVICE_DTO.UpdateMetadataDTO,
   ): Promise<void> {
-    /* TODO: CHECK CLIENT PERMISSION -- JWT CHECK */
     return this.fileManagerService.updateMetadata(id, body);
   }
 
-  /* TODO: CHECK USER JWT -- AUTHORIZATION */
-  @get('/files/generate-file-access-token/{id}/{user_id}', {
+  @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
+  @get('/files/generate-file-access-token/{id}', {
     tags: ['files'],
     description: 'Generate FileAccessToken for a specified user',
     summary: 'Generate FileAccessToken',
     responses: {
       200: {
         description: 'File access token',
-        content: {'text/plain': {schema: {type: 'string'}}},
+        content: { 'text/plain': { schema: { type: 'string' } } },
       },
     },
   })
   async generateFileAccessToken(
     @param.path.string('id', {
       description: 'File id',
-      schema: {pattern: OBJECT_ID_PATTERN},
+      schema: { pattern: OBJECT_ID_PATTERN },
     })
     id: string,
-    @param.path.string('user_id', {description: 'User id'})
-    userId: string,
   ): Promise<string> {
-    /* TODO: CHECK CLIENT PERMISSION -- JWT CHECK */
+    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
     const accessToken = await this.fileManagerService.generateAccessToken(
       id,
       userId,
@@ -146,8 +149,7 @@ export class FileController {
     return accessToken.token;
   }
 
-  /* TODO: CHECK USER JWT -- AUTHORIZATION */
-  /* user_id Should fetch from JWT token */
+  @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
   @get('/files/{id}', {
     tags: ['files'],
     description: 'Get file info',
@@ -155,28 +157,27 @@ export class FileController {
     responses: {
       200: {
         description: 'File info',
-        content: {'application/json': {schema: getModelSchemaRef(FileInfoDTO)}},
+        content: { 'application/json': { schema: getModelSchemaRef(FileInfoDTO) } },
       },
     },
   })
   async getFileInfo(
     @param.path.string('id', {
       description: 'File id',
-      schema: {pattern: OBJECT_ID_PATTERN},
+      schema: { pattern: OBJECT_ID_PATTERN },
     })
     id: string,
-    @param.query.string('user_id', {required: false, description: 'User id'})
-    userId = '',
   ): Promise<FileInfoDTO> {
+    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
     return this.fileManagerService.getFileInfo(id, userId);
   }
 
-  /* TODO: CHECK USER JWT -- AUTHORIZATION */
+  @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
   @del('/files/{id}', {
     tags: ['files'],
     description: 'Remove file',
     summary: 'Remove file',
-    responses: {204: {description: 'Remove successfully'}},
+    responses: { 204: { description: 'Remove successfully' } },
   })
   async removeFile(@param.path.string('id') id: string): Promise<void> {
     return this.fileManagerService.removeFile(id);

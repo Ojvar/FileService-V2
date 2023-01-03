@@ -1,4 +1,4 @@
-import {inject} from '@loopback/core';
+import { inject, intercept } from '@loopback/core';
 import {
   del,
   get,
@@ -8,12 +8,26 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {FILE_MANAGER_SERVICE_DTO} from '../dto';
-import {Credential, UploadedFile} from '../models';
-import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
+import { FILE_MANAGER_SERVICE_DTO } from '../dto';
+import { SECURITY_ROLES } from '../keys';
+import {
+  KeycloakSecurity,
+  KEYCLOAK_SECURITY_SERVICE,
+  protect,
+} from '../lib-keycloak/src';
+import { Credential, UploadedFile } from '../models';
+import { FileManagerService, FILE_MANAGER_SERVICE } from '../services';
 
 export class CertificateController {
-  @patch('/token/{token}/{user_id}/{file_id}', {
+  constructor(
+    @inject(FILE_MANAGER_SERVICE)
+    private fileManagerService: FileManagerService,
+    @inject(KEYCLOAK_SECURITY_SERVICE)
+    private keycloakSecurityService: KeycloakSecurity,
+  ) { }
+
+  @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
+  @patch('/token/{token}/{file_id}', {
     tags: ['credential'],
     description: 'Update uploaded file meta-data',
     summary: 'Update uploaded file meta-data',
@@ -21,18 +35,18 @@ export class CertificateController {
       200: {
         description: 'Uploaded File Data',
         content: {
-          'application/json': {schema: getModelSchemaRef(UploadedFile)},
+          'application/json': { schema: getModelSchemaRef(UploadedFile) },
         },
       },
     },
   })
   async updateMetadata(
-    @requestBody({description: 'Data for add/remove fields', required: true})
+    @requestBody({ description: 'Data for add/remove fields', required: true })
     body: FILE_MANAGER_SERVICE_DTO.UpdateMetadataDTO,
-    @param.path.string('user_id') userId: string,
     @param.path.string('token') token: string,
     @param.path.string('file_id') fileId: string,
   ): Promise<UploadedFile> {
+    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
     return this.fileManagerService.certificateEditMetadata(
       token,
       userId,
@@ -41,54 +55,54 @@ export class CertificateController {
     );
   }
 
-  /* TODO: CHECK USER JWT - FOR AUTHORIZATION */
-  @get('/token/{token}/{user_id}', {
+  @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
+  @get('/token/{token}', {
     description: 'Get credential data',
     summary: 'Get credential data',
     tags: ['credential'],
     responses: {
       200: {
         description: 'Credential Data',
-        content: {'application/json': getModelSchemaRef(Credential)},
+        content: { 'application/json': getModelSchemaRef(Credential) },
       },
     },
   })
   async getFilesList(
     @param.path.string('token') token: string,
-    @param.path.string('user_id') userId: string,
   ): Promise<Credential> {
+    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
     return this.fileManagerService.getCredential(token, userId);
   }
 
-  /* TODO: CHECK USER JWT - FOR AUTHORIZATION */
-  @del('/token/{token}/{user_id}', {
+  @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
+  @del('/token/{token}', {
     description: 'Reject a certificate',
     summary: 'Reject a certificate',
     tags: ['credential'],
-    responses: {204: {description: 'Reject successfully'}},
+    responses: { 204: { description: 'Reject successfully' } },
   })
   async rejectCertificate(
     @param.path.string('token') token: string,
-    @param.path.string('user_id') userId: string,
   ): Promise<void> {
+    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
     await this.fileManagerService.reject(token, userId);
   }
 
-  /* TODO: CHECK USER JWT - FOR AUTHORIZATION */
-  @patch('/token/{token}/{user_id}', {
+  @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
+  @patch('/token/{token}', {
     description: 'Commit a certificate',
     summary: 'Commit a certificate',
     tags: ['credential'],
-    responses: {204: {description: 'Commit successfully'}},
+    responses: { 204: { description: 'Commit successfully' } },
   })
   async commitCertificate(
     @param.path.string('token') token: string,
-    @param.path.string('user_id') userId: string,
   ): Promise<void> {
+    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
     await this.fileManagerService.commit(token, userId);
   }
 
-  /* TODO: CHECK USER JWT - FOR AUTHORIZATION */
+  @intercept(protect(SECURITY_ROLES.NO_BODY))
   @post('/token', {
     description: 'Generate a file upload certificate and return file-token',
     summary: 'Generate a new file-upload certificate',
@@ -108,12 +122,7 @@ export class CertificateController {
   })
   async generateToken(
     @requestBody() body: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO,
-  ): Promise<unknown> {
+  ): Promise<FILE_MANAGER_SERVICE_DTO.GetTokenResponseDTO> {
     return this.fileManagerService.getToken(body);
   }
-
-  constructor(
-    @inject(FILE_MANAGER_SERVICE)
-    private fileManagerService: FileManagerService,
-  ) {}
 }
