@@ -109,7 +109,7 @@ export class CertificateController {
     tags: ['credential'],
     responses: {
       200: {
-        description: 'Genereated token data',
+        description: 'Genereated certificate',
         content: {
           'application/json': {
             schema: getModelSchemaRef(
@@ -120,7 +120,7 @@ export class CertificateController {
       },
     },
   })
-  async generateToken(
+  async generateCertificate(
     @requestBody() body: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO,
   ): Promise<FILE_MANAGER_SERVICE_DTO.GetTokenResponseDTO> {
     return this.fileManagerService.getToken(body);
