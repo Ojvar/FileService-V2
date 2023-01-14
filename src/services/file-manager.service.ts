@@ -275,7 +275,7 @@ export class FileManagerService {
   }
 
   /* Generate a new upload credential */
-  async getToken(
+  async generateCertificate(
     data: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO,
   ): Promise<FILE_MANAGER_SERVICE_DTO.GetTokenResponseDTO> {
     const credential = Credential.fromTokenRequest(data);

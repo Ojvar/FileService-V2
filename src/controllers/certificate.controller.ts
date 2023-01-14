@@ -113,7 +113,7 @@ export class CertificateController {
         content: {
           'application/json': {
             schema: getModelSchemaRef(
-              FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO,
+              FILE_MANAGER_SERVICE_DTO.GetTokenResponseDTO,
             ),
           },
         },
@@ -123,6 +123,6 @@ export class CertificateController {
   async generateCertificate(
     @requestBody() body: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO,
   ): Promise<FILE_MANAGER_SERVICE_DTO.GetTokenResponseDTO> {
-    return this.fileManagerService.getToken(body);
+    return this.fileManagerService.generateCertificate(body);
   }
 }
