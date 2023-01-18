@@ -1,4 +1,4 @@
-import { inject, intercept } from '@loopback/core';
+import {inject, intercept} from '@loopback/core';
 import {
   del,
   get,
@@ -8,15 +8,15 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import { FILE_MANAGER_SERVICE_DTO } from '../dto';
-import { SECURITY_ROLES } from '../keys';
+import {FILE_MANAGER_SERVICE_DTO} from '../dto';
+import {SECURITY_ROLES} from '../keys';
 import {
   KeycloakSecurity,
   KEYCLOAK_SECURITY_SERVICE,
   protect,
 } from '../lib-keycloak/src';
-import { Credential, UploadedFile } from '../models';
-import { FileManagerService, FILE_MANAGER_SERVICE } from '../services';
+import {Credential, UploadedFile} from '../models';
+import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
 export class CertificateController {
   constructor(
@@ -24,7 +24,7 @@ export class CertificateController {
     private fileManagerService: FileManagerService,
     @inject(KEYCLOAK_SECURITY_SERVICE)
     private keycloakSecurityService: KeycloakSecurity,
-  ) { }
+  ) {}
 
   @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
   @patch('/token/{token}/{file_id}', {
@@ -35,18 +35,18 @@ export class CertificateController {
       200: {
         description: 'Uploaded File Data',
         content: {
-          'application/json': { schema: getModelSchemaRef(UploadedFile) },
+          'application/json': {schema: getModelSchemaRef(UploadedFile)},
         },
       },
     },
   })
   async updateMetadata(
-    @requestBody({ description: 'Data for add/remove fields', required: true })
+    @requestBody({description: 'Data for add/remove fields', required: true})
     body: FILE_MANAGER_SERVICE_DTO.UpdateMetadataDTO,
     @param.path.string('token') token: string,
     @param.path.string('file_id') fileId: string,
   ): Promise<UploadedFile> {
-    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
     return this.fileManagerService.certificateEditMetadata(
       token,
       userId,
@@ -63,14 +63,14 @@ export class CertificateController {
     responses: {
       200: {
         description: 'Credential Data',
-        content: { 'application/json': getModelSchemaRef(Credential) },
+        content: {'application/json': {schema: getModelSchemaRef(Credential)}},
       },
     },
   })
   async getFilesList(
     @param.path.string('token') token: string,
   ): Promise<Credential> {
-    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
     return this.fileManagerService.getCredential(token, userId);
   }
 
@@ -79,12 +79,12 @@ export class CertificateController {
     description: 'Reject a certificate',
     summary: 'Reject a certificate',
     tags: ['credential'],
-    responses: { 204: { description: 'Reject successfully' } },
+    responses: {204: {description: 'Reject successfully'}},
   })
   async rejectCertificate(
     @param.path.string('token') token: string,
   ): Promise<void> {
-    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
     await this.fileManagerService.reject(token, userId);
   }
 
@@ -93,12 +93,12 @@ export class CertificateController {
     description: 'Commit a certificate',
     summary: 'Commit a certificate',
     tags: ['credential'],
-    responses: { 204: { description: 'Commit successfully' } },
+    responses: {204: {description: 'Commit successfully'}},
   })
   async commitCertificate(
     @param.path.string('token') token: string,
   ): Promise<void> {
-    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
     await this.fileManagerService.commit(token, userId);
   }
 
