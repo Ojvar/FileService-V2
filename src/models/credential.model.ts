@@ -117,6 +117,52 @@ export type UploadedFiles = UploadedFile[];
 
 @model()
 export class Credential extends Model {
+  @property({ type: 'string', id: true, generated: false, required: true })
+  id: string;
+  @property({ type: 'string', required: true }) allowed_user: string;
+
+  @property.array(AllowedFile, {
+    required: true,
+    jsonSchema: { description: 'Allowed files list' },
+  })
+  allowed_files: AllowedFiles;
+
+  @property.array(UploadedFile, {
+    required: false,
+    default: [],
+    jsonSchema: { description: 'Uploaded files list' },
+  })
+  uploaded_files: UploadedFiles;
+
+  @property({
+    type: 'number',
+    jsonSchema: { description: 'Token expire time', type: 'number' },
+  })
+  expire_time: number;
+
+  @property({ type: 'date', required: true }) created_at: string;
+  @property({
+    type: 'number',
+    required: true,
+    jsonSchema: {
+      description: 'Token status',
+      type: 'number',
+      enum: Object.values(EnumTokenStatus),
+    },
+  })
+  status: EnumTokenStatus;
+
+  constructor(data?: Partial<Credential>) {
+    super(data);
+
+    /* Set default data */
+    this.id = this.id ?? new ObjectId();
+    this.created_at = this.created_at ?? new Date();
+    this.allowed_files = this.allowed_files ?? [];
+    this.status = this.status ?? EnumTokenStatus.NORMAL;
+    this.uploaded_files = this.uploaded_files ?? [];
+  }
+
   setMetadata(field: string, meta?: FileMeta): UploadedFile {
     const uploadedFile = this.uploaded_files.find(x => x.fieldname === field);
     if (!uploadedFile) {
@@ -216,52 +262,6 @@ export class Credential extends Model {
         : undefined,
     });
   }
-
-  constructor(data?: Partial<Credential>) {
-    super(data);
-
-    /* Set default data */
-    this.id = this.id ?? new ObjectId();
-    this.created_at = this.created_at ?? new Date();
-    this.allowed_files = this.allowed_files ?? [];
-    this.status = this.status ?? EnumTokenStatus.NORMAL;
-    this.uploaded_files = this.uploaded_files ?? [];
-  }
-
-  @property({ type: 'string', id: true, generated: false, required: true })
-  id: string;
-  @property({ type: 'string', required: true }) allowed_user: string;
-
-  @property.array(AllowedFile, {
-    required: true,
-    jsonSchema: { description: 'Allowed files list' },
-  })
-  allowed_files: AllowedFiles;
-
-  @property.array(UploadedFile, {
-    required: false,
-    default: [],
-    jsonSchema: { description: 'Uploaded files list' },
-  })
-  uploaded_files: UploadedFiles;
-
-  @property({
-    type: 'number',
-    jsonSchema: { description: 'Token expire time', type: 'number' },
-  })
-  expire_time: number;
-
-  @property({ type: 'date', required: true }) created_at: string;
-  @property({
-    type: 'number',
-    required: true,
-    jsonSchema: {
-      description: 'Token status',
-      type: 'number',
-      enum: Object.values(EnumTokenStatus),
-    },
-  })
-  status: EnumTokenStatus;
 }
 
 export interface TokenRelations {
