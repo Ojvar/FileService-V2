@@ -55,7 +55,7 @@ export class CertificateController {
     );
   }
 
-  @get('/token/{token}', {
+  @get('/token/{user_id}/{token}', {
     description: 'Get credential data',
     summary: 'Get credential data',
     tags: ['credential'],
@@ -67,9 +67,10 @@ export class CertificateController {
     },
   })
   async getFilesList(
+    @param.path.string('user_id') userId: string,
     @param.path.string('token') token: string,
   ): Promise<Credential> {
-    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
+    // const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
     return this.fileManagerService.getCredential(token, userId);
   }
 
