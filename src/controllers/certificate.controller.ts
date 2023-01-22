@@ -87,16 +87,17 @@ export class CertificateController {
     await this.fileManagerService.reject(token, userId);
   }
 
-  @patch('/token/{token}', {
+  @post('/token/{user_id}/{token}', {
     description: 'Commit a certificate',
     summary: 'Commit a certificate',
     tags: ['credential'],
     responses: { 204: { description: 'Commit successfully' } },
   })
   async commitCertificate(
+    @param.path.string('user_id') userId: string,
     @param.path.string('token') token: string,
   ): Promise<void> {
-    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
+    // const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
     await this.fileManagerService.commit(token, userId);
   }
 
