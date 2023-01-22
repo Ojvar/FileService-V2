@@ -7,6 +7,15 @@ export const OBJECT_ID_PATTERN = /^[0-9a-fA-F]{24}$/.source;
 
 export namespace FILE_MANAGER_SERVICE_DTO {
   @model()
+  export class GetFileInfoRequestDTO {
+    @property.array(String, {
+      description: "File id's list",
+      jsonSchema: { pattern: OBJECT_ID_PATTERN },
+    })
+    files: string[];
+  }
+
+  @model()
   export class SearchMetadataDTO {
     @property({
       type: 'object',

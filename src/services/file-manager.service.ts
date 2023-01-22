@@ -69,6 +69,7 @@ export class FileManagerService {
     /* Load token */
     //TODO: CHECK CREDENTIAL
     const credential = await this.getCredential(body.token_id, userId);
+    console.log(credential);
 
     /* Load file */
     const file = await this.fileStorageService.getFileById(fileId);
@@ -166,6 +167,24 @@ export class FileManagerService {
     return true;
   }
 
+  async getFilesInfo(
+    fileIds: string[],
+    userId: string,
+  ): Promise<FileInfoListDTO> {
+    const files = await this.fileStorageService.getFilesList(fileIds);
+    const accessTokens = [];
+    for (const file of files) {
+      accessTokens.push({
+        file,
+        token: userId
+          ? await this.generateAccessToken(file.getId(), userId)
+          : null,
+      });
+    }
+    return accessTokens.map(file =>
+      FileInfoDTO.fromModel(file.file, file.token),
+    );
+  }
   async getFileInfo(id: string, userId: string): Promise<FileInfoDTO> {
     const file = await this.fileStorageService.getFileById(id);
     const accessToken = userId

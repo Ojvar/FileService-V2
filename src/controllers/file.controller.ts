@@ -7,7 +7,6 @@ import {
   patch,
   post,
   requestBody,
-  writeResultToResponse,
 } from '@loopback/rest';
 import {
   FileInfoDTO,
@@ -150,26 +149,26 @@ export class FileController {
   }
 
   @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
-  @get('/files/{id}', {
+  @post('/files', {
     tags: ['files'],
-    description: 'Get file info',
-    summary: 'Get file info',
+    summary: 'Get file(s) information',
+    description: 'Get file(s) information',
     responses: {
       200: {
-        description: 'File info',
-        content: { 'application/json': { schema: getModelSchemaRef(FileInfoDTO) } },
+        description: 'File(s) information',
+        content: {
+          'application/json': {
+            schema: { type: 'array', items: getModelSchemaRef(FileInfoDTO) },
+          },
+        },
       },
     },
   })
-  async getFileInfo(
-    @param.path.string('id', {
-      description: 'File id',
-      schema: { pattern: OBJECT_ID_PATTERN },
-    })
-    id: string,
-  ): Promise<FileInfoDTO> {
-    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
-    return this.fileManagerService.getFileInfo(id, userId);
+  async getFilesInfo(
+    @requestBody() body: FILE_MANAGER_SERVICE_DTO.GetFileInfoRequestDTO,
+  ): Promise<FileInfoListDTO> {
+    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
+    return this.fileManagerService.getFilesInfo(body.files, userId);
   }
 
   @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))

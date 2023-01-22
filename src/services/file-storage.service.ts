@@ -1,30 +1,35 @@
-import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {HttpErrors} from '@loopback/rest';
-import {STORAGE_DIRECTORY} from '../interceptors';
-import {Credential, File, FileMeta, FileMetaArray, Files} from '../models';
-import {FileRepository} from '../repositories';
-import {FileService, FILE_SERVICE} from './file.service';
+import { BindingKey, BindingScope, inject, injectable } from '@loopback/core';
+import { repository } from '@loopback/repository';
+import { HttpErrors } from '@loopback/rest';
+import { ObjectID, ObjectId } from 'bson';
+import { Credential, File, FileMeta, FileMetaArray, Files } from '../models';
+import { FileRepository } from '../repositories';
+import { FileService, FILE_SERVICE } from './file.service';
 
 export const FILE_STORAGE_SERVICE = BindingKey.create<FileStorageService>(
   'services.FileStorageService',
 );
 
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({ scope: BindingScope.TRANSIENT })
 export class FileStorageService {
+  constructor(
+    @inject(FILE_SERVICE) private fileService: FileService,
+    @repository(FileRepository) private fileRepository: FileRepository,
+  ) { }
+
   async filterByMetadataAdvance(metadata: FileMetaArray): Promise<Files> {
     const filter: object[] = [];
     metadata.forEach(metaItem => {
       const metaItemFilter = Object.keys(metaItem).reduce(
         (result: Record<string, unknown>, key: string) => {
-          result[`meta.${key}`] = {$regex: metaItem[key], $options: 'i'};
+          result[`meta.${key}`] = { $regex: metaItem[key], $options: 'i' };
           return result;
         },
         {},
       );
       filter.push(metaItemFilter);
     });
-    return this.fileRepository.find({where: {or: filter}});
+    return this.fileRepository.find({ where: { or: filter } });
   }
 
   async filterByMetadata(metadata: FileMeta): Promise<Files> {
@@ -35,7 +40,7 @@ export class FileStorageService {
       },
       {},
     );
-    return this.fileRepository.find({where: filter});
+    return this.fileRepository.find({ where: filter });
   }
 
   async updateFile(file: File): Promise<void> {
@@ -44,6 +49,20 @@ export class FileStorageService {
 
   async removeFile(id: string): Promise<void> {
     return this.fileRepository.deleteById(id);
+  }
+
+  async getFilesList(files: string[] = []): Promise<Files> {
+    const aggregate = [{ $match: { _id: { $in: files.map(x => new ObjectID(x)) } } }];
+    const pointer = await this.fileRepository.execute(
+      File.modelName,
+      'aggregate',
+      aggregate,
+    );
+    const result = (await pointer.toArray()).map((x: object) => new File(x));
+    if (!result || result.length === 0) {
+      throw new HttpErrors.UnprocessableEntity('Invalid files data');
+    }
+    return result;
   }
 
   async getFileById(id: string): Promise<File> {
@@ -89,10 +108,4 @@ export class FileStorageService {
 
     return files;
   }
-
-  constructor(
-    @inject(STORAGE_DIRECTORY) private storagePath: string,
-    @inject(FILE_SERVICE) private fileService: FileService,
-    @repository(FileRepository) private fileRepository: FileRepository,
-  ) {}
 }
