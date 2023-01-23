@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { BindingKey, BindingScope, inject, injectable } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { HttpErrors } from '@loopback/rest';
-import { ObjectID, ObjectId } from 'bson';
+import { ObjectID } from 'bson';
 import { Credential, File, FileMeta, FileMetaArray, Files } from '../models';
 import { FileRepository } from '../repositories';
 import { FileService, FILE_SERVICE } from './file.service';
@@ -52,7 +53,23 @@ export class FileStorageService {
   }
 
   async getFilesList(files: string[] = []): Promise<Files> {
-    const aggregate = [{ $match: { _id: { $in: files.map(x => new ObjectID(x)) } } }];
+    const aggregate = [
+      { $match: { _id: { $in: files.map(x => new ObjectID(x)) } } },
+      {
+        $project: {
+          id: '$id',
+          field_name: 1,
+          original_name: 1,
+          size: 1,
+          mime: 1,
+          is_private: 1,
+          owner: 1,
+          uploaded: 1,
+          status: 1,
+          meta: 1,
+        },
+      },
+    ];
     const pointer = await this.fileRepository.execute(
       File.modelName,
       'aggregate',
