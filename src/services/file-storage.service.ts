@@ -57,7 +57,8 @@ export class FileStorageService {
       { $match: { _id: { $in: files.map(x => new ObjectID(x)) } } },
       {
         $project: {
-          id: '$id',
+          _id: 0,
+          id: '$_id',
           field_name: 1,
           original_name: 1,
           size: 1,

@@ -38,7 +38,7 @@ export class FileInfoDTO extends Model {
   ): FileInfoDTO {
     return new FileInfoDTO({
       field_name: data.field_name,
-      id: data.getId(),
+      id: data.id ?? data.getId(),
       mime: data.mime,
       original_name: data.original_name,
       size: data.size,
