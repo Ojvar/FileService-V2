@@ -171,6 +171,9 @@ export class FileManagerService {
     fileIds: string[],
     userId: string,
   ): Promise<FileInfoListDTO> {
+    if (fileIds.length === 0) {
+      return [];
+    }
     const files = await this.fileStorageService.getFilesList(fileIds);
     const accessTokens = [];
     for (const file of files) {
