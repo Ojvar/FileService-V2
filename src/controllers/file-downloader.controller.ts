@@ -4,7 +4,6 @@ import { get, param, Response, RestBindings } from '@loopback/rest';
 import { resolve } from 'path';
 import { OBJECT_ID_PATTERN } from '../dto';
 import { STORAGE_DIRECTORY } from '../interceptors';
-import { KeycloakSecurity, KEYCLOAK_SECURITY_SERVICE } from '../lib-keycloak/src';
 import { FileRepository } from '../repositories';
 import { FileManagerService, FILE_MANAGER_SERVICE } from '../services';
 
