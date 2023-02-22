@@ -20,11 +20,13 @@ import { CronJobComponent } from './components';
 import { PRUNE_EXPIRED_CREDENTIALS_CRONJOB_CONFIG } from './crontabs';
 import { FILE_STORAGE_DATASOURCE_CONFIG } from './datasources';
 import { FileHandlerInterceptor, STORAGE_DIRECTORY } from './interceptors';
-import { KCAuthenticationComponent, KeycloakComponent, KeycloakSequence } from './lib-keycloak/src';
 import {
-  CREDENTIAL_MANAGER_SERVICE_CONFIG,
-  REDIS_SERVICE_CONFIG,
-} from './services';
+  KCAuthenticationComponent,
+  KeycloakComponent,
+  KeycloakSequence,
+} from './lib-keycloak/src';
+import { RedisComponent, REDIS_SERVICE_CONFING } from './lib-redis/src';
+import { CREDENTIAL_MANAGER_SERVICE_CONFIG } from './services';
 
 export { ApplicationConfig };
 
@@ -62,7 +64,7 @@ export class FileServiceApplication extends BootMixin(
     this.configFileStorage();
   }
 
-  private configKeycloak(){
+  private configKeycloak() {
     this.sequence(KeycloakSequence);
     this.component(KeycloakComponent);
     this.component(KCAuthenticationComponent);
@@ -95,10 +97,9 @@ export class FileServiceApplication extends BootMixin(
   }
 
   private configCronJobs() {
+    const { PRUNE_EXPIRED_CREDENTIALS_CRON_TIME } = process.env;
     this.component(CronComponent);
     this.component(CronJobComponent);
-
-    const { PRUNE_EXPIRED_CREDENTIALS_CRON_TIME } = process.env;
     this.bind(PRUNE_EXPIRED_CREDENTIALS_CRONJOB_CONFIG).to({
       cronTime: PRUNE_EXPIRED_CREDENTIALS_CRON_TIME,
     });
@@ -107,7 +108,8 @@ export class FileServiceApplication extends BootMixin(
   private configRedis() {
     const { REDIS_HOST, REDIS_DB, REDIS_PORT, REDIS_USERNAME, REDIS_PASSWORD } =
       process.env;
-    this.bind(REDIS_SERVICE_CONFIG).to({
+    this.component(RedisComponent);
+    this.bind(REDIS_SERVICE_CONFING).to({
       socket: { host: REDIS_HOST ?? 'localhost', port: +(REDIS_PORT ?? '6379') },
       username: REDIS_USERNAME,
       password: REDIS_PASSWORD,

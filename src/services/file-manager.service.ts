@@ -3,6 +3,7 @@ import { BindingKey, BindingScope, inject, injectable } from '@loopback/core';
 import { HttpErrors, Model, Request } from '@loopback/rest';
 import { ObjectId } from 'bson';
 import { FileInfoDTO, FileInfoListDTO, FILE_MANAGER_SERVICE_DTO } from '../dto';
+import { RedisService, REDIS_SERVICE } from '../lib-redis/src';
 import {
   Credential,
   File,
@@ -17,7 +18,6 @@ import {
 } from './credential.manager.service';
 import { FileStorageService, FILE_STORAGE_SERVICE } from './file-storage.service';
 import { FileService, FILE_SERVICE } from './file.service';
-import { RedisService, REDIS_SERVICE } from './redis.service';
 
 export const FILE_MANAGER_SERVICE = BindingKey.create<FileManagerService>(
   'services.FileManagerService',
@@ -67,7 +67,6 @@ export class FileManagerService {
     userId: string,
   ): Promise<void> {
     /* Load token */
-    //TODO: CHECK CREDENTIAL
     const credential = await this.getCredential(body.token_id, userId);
     console.log(credential);
 
@@ -212,8 +211,6 @@ export class FileManagerService {
 
   async reject(token: string, userId: string) {
     const credential = await this.getCredential(token, userId);
-
-    /* Remove credential from redis */
     credential.markAsRejected();
     await this.credentialManagerService.removeCredential(credential, true);
   }
@@ -221,11 +218,8 @@ export class FileManagerService {
   async commit(token: string, userId: string): Promise<File[]> {
     const credential = await this.getCredential(token, userId);
     const files = await this.fileStorageService.saveCredential(credential);
-
-    /* Remove credential from redis */
     credential.markAsCommited();
     await this.credentialManagerService.removeCredential(credential, false);
-
     return files;
   }
 
