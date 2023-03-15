@@ -58,6 +58,7 @@
     "@loopback/service-proxy": "^5.0.9",
     "bson": "^4.7.0",
     "dotenv": "^16.0.2",
+    "jssha": "^3.3.0",
     "keycloak-connect": "^20.0.2",
     "loopback-connector-mongodb": "^5.2.3",
     "loopback-connector-rest": "^4.0.2",
