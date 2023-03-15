@@ -1,5 +1,5 @@
 # Check out https://hub.docker.com/_/node to select a new base image
-FROM node:18-slim
+FROM knode0.qeng.ir:5000/node:19-slim
 
 # Set to a non-root built-in user `node`
 USER node
@@ -15,7 +15,7 @@ WORKDIR /home/node/app
 COPY --chown=node package*.json ./
 
 #RUN npm install --loglevel verbose
-RUN npm install --loglevel verbose --registry=http://62.99.242.20:4873/
+RUN npm install --loglevel verbose --registry=http://knode0.qeng.ir:4873/
 
 # Bundle app source code
 COPY --chown=node . .

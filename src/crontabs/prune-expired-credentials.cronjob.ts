@@ -2,6 +2,9 @@ import {BindingKey, BindingScope, ContextTags, inject} from '@loopback/core';
 import {CronJob, cronJob} from '@loopback/cron';
 import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
+import debugFactory from 'debug';
+const trace = debugFactory('file-service::PruneExpiredCredentialsCronJob');
+
 export type PruneExpiredCredentialsCronJobConfig = {
   cronTime: string;
 };
@@ -28,14 +31,14 @@ export class PruneExpiredCredentialsCronJob extends CronJob {
     @inject(FILE_MANAGER_SERVICE)
     private fileManagerService: FileManagerService,
   ) {
+    trace(configs);
     super({
       name: PruneExpiredCredentialsCronJob.name,
       cronTime: configs.cronTime,
       start: true,
       onTick: () => {
-				fileManagerService.pruneExpiredCredentials()
-					.catch(console.error)
-			}
+        fileManagerService.pruneExpiredCredentials().catch(console.error);
+      },
     });
   }
 }
