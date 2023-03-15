@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
-import {HttpErrors, Model, Request} from '@loopback/rest';
-import {ObjectId} from 'bson';
-import {FileInfoDTO, FileInfoListDTO, FILE_MANAGER_SERVICE_DTO} from '../dto';
+import { BindingKey, BindingScope, inject, injectable } from '@loopback/core';
+import { HttpErrors, Model, Request } from '@loopback/rest';
+import { ObjectId } from 'bson';
+import { FileInfoDTO, FileInfoListDTO, FILE_MANAGER_SERVICE_DTO } from '../dto';
+import { RedisService, REDIS_SERVICE } from '../lib-redis/src';
 import {
   Credential,
   File,
@@ -15,9 +16,8 @@ import {
   CredentialManagerService,
   CREDENTIAL_MANAGER_SERVICE,
 } from './credential.manager.service';
-import {FileStorageService, FILE_STORAGE_SERVICE} from './file-storage.service';
-import {FileService, FILE_SERVICE} from './file.service';
-import {RedisService, REDIS_SERVICE} from './redis.service';
+import { FileStorageService, FILE_STORAGE_SERVICE } from './file-storage.service';
+import { FileService, FILE_SERVICE } from './file.service';
 
 export const FILE_MANAGER_SERVICE = BindingKey.create<FileManagerService>(
   'services.FileManagerService',
@@ -50,7 +50,7 @@ export class FileAccessToken extends Model {
   }
 }
 
-@injectable({scope: BindingScope.APPLICATION})
+@injectable({ scope: BindingScope.APPLICATION })
 export class FileManagerService {
   constructor(
     @inject(REDIS_SERVICE) private redisService: RedisService,
@@ -59,7 +59,7 @@ export class FileManagerService {
     private fileStorageService: FileStorageService,
     @inject(CREDENTIAL_MANAGER_SERVICE)
     private credentialManagerService: CredentialManagerService,
-  ) {}
+  ) { }
 
   async editFile(
     fileId: string,
@@ -67,7 +67,6 @@ export class FileManagerService {
     userId: string,
   ): Promise<void> {
     /* Load token */
-    //TODO: CHECK CREDENTIAL
     const credential = await this.getCredential(body.token_id, userId);
     console.log(credential);
 
@@ -148,7 +147,7 @@ export class FileManagerService {
     await this.redisService.client.SET(
       accessToken.redisKey,
       accessToken.toJson(),
-      {EX: accessToken.expire_time},
+      { EX: accessToken.expire_time },
     );
 
     return accessToken;
@@ -167,6 +166,27 @@ export class FileManagerService {
     return true;
   }
 
+  async getFilesInfo(
+    fileIds: string[],
+    userId: string,
+  ): Promise<FileInfoListDTO> {
+    if (fileIds.length === 0) {
+      return [];
+    }
+    const files = await this.fileStorageService.getFilesList(fileIds);
+    const accessTokens = [];
+    for (const file of files) {
+      accessTokens.push({
+        file,
+        token: userId
+          ? await this.generateAccessToken(file.getId(), userId)
+          : null,
+      });
+    }
+    return accessTokens.map(file =>
+      FileInfoDTO.fromModel(file.file, file.token),
+    );
+  }
   async getFileInfo(id: string, userId: string): Promise<FileInfoDTO> {
     const file = await this.fileStorageService.getFileById(id);
     const accessToken = userId
@@ -191,8 +211,6 @@ export class FileManagerService {
 
   async reject(token: string, userId: string) {
     const credential = await this.getCredential(token, userId);
-
-    /* Remove credential from redis */
     credential.markAsRejected();
     await this.credentialManagerService.removeCredential(credential, true);
   }
@@ -200,11 +218,8 @@ export class FileManagerService {
   async commit(token: string, userId: string): Promise<File[]> {
     const credential = await this.getCredential(token, userId);
     const files = await this.fileStorageService.saveCredential(credential);
-
-    /* Remove credential from redis */
     credential.markAsCommited();
     await this.credentialManagerService.removeCredential(credential, false);
-
     return files;
   }
 
@@ -275,13 +290,13 @@ export class FileManagerService {
   }
 
   /* Generate a new upload credential */
-  async getToken(
+  async generateCertificate(
     data: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO,
   ): Promise<FILE_MANAGER_SERVICE_DTO.GetTokenResponseDTO> {
     const credential = Credential.fromTokenRequest(data);
     await this.storeCredential(credential);
     await this.credentialManagerService.addCredential(credential);
-    return {id: credential.id, expire_at: credential.expire_time};
+    return { id: credential.id, expire_at: credential.expire_time };
   }
 
   /* Get uploaded file */

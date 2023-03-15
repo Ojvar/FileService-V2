@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
-import {ObjectId} from 'bson';
-import {STORAGE_DIRECTORY} from '../interceptors';
-import {Credential} from '../models';
-import {StringArray} from '../types';
-import {FileService, FILE_SERVICE} from './file.service';
-import {RedisService, REDIS_SERVICE} from './redis.service';
+import { BindingKey, BindingScope, inject, injectable } from '@loopback/core';
+import { ObjectId } from 'bson';
+import { STORAGE_DIRECTORY } from '../interceptors';
+import { RedisService, REDIS_SERVICE } from '../lib-redis/src';
+import { Credential } from '../models';
+import { StringArray } from '../types';
+import { FileService, FILE_SERVICE } from './file.service';
 
 export type CredentialManagerServiceConfig = {
   bucketInterval: number;
@@ -25,8 +25,15 @@ export const CREDENTIAL_MANAGER_SERVICE_CONFIG =
     'services.config.CredentialManagerService',
   );
 
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({ scope: BindingScope.TRANSIENT })
 export class CredentialManagerService {
+  constructor(
+    @inject(REDIS_SERVICE) private redisService: RedisService,
+    @inject(FILE_SERVICE) private fileService: FileService,
+    @inject(CREDENTIAL_MANAGER_SERVICE_CONFIG)
+    private configs: CredentialManagerServiceConfig,
+  ) { }
+
   async pruneLastExpiredEntry() {
     const lastEntryTime = +new Date() - this.configs.bucketInterval;
     return this.removeEntry(lastEntryTime);
@@ -66,7 +73,6 @@ export class CredentialManagerService {
         continue;
       }
       const credential = new Credential(JSON.parse(rawCredential));
-
       await this.removeFilesFromDisk(credential);
       await this.redisService.client.DEL(token);
     }
@@ -100,18 +106,10 @@ export class CredentialManagerService {
     const entryIndex = this.getEntry(date);
     return `entries_${entryIndex}`;
   }
-  private getRedisKeyByEntryIndex(entryIndex: number | string): string {
-    return `entries_${entryIndex}`;
-  }
+  // private getRedisKeyByEntryIndex(entryIndex: number | string): string {
+  //   return `entries_${entryIndex}`;
+  // }
   private getEntry(timeStamp: number): number {
     return Math.ceil(timeStamp / this.configs.bucketInterval);
   }
-
-  constructor(
-    @inject(REDIS_SERVICE) private redisService: RedisService,
-    @inject(FILE_SERVICE) private fileService: FileService,
-    @inject(STORAGE_DIRECTORY) private storageDirectory: string,
-    @inject(CREDENTIAL_MANAGER_SERVICE_CONFIG)
-    private configs: CredentialManagerServiceConfig,
-  ) {}
 }

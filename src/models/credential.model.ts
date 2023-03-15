@@ -1,122 +1,35 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { Model, model, property } from '@loopback/repository';
 import { HttpErrors } from '@loopback/rest';
 import { ObjectId } from 'bson';
 import { FILE_MANAGER_SERVICE_DTO } from '../dto';
 import { StringArray } from '../types';
+import {
+  Credential as BaseCredential,
+  EnumTokenStatus,
+  UploadedFile,
+} from '../lib-models/src';
 import { FileMeta } from './file.model';
 
-export enum EnumTokenStatus {
-  NORMAL = 0,
-  COMMITED = 1,
-  REJECTED = 2,
-}
+export {
+  UploadedFiles,
+  UploadedFile,
+  AllowedFile,
+  AllowedFiles,
+  EnumTokenStatus,
+} from '../lib-models/src';
 
-@model({ jsonSchema: { description: 'Allowed file item' } })
-export class AllowedFile {
-  @property({
-    type: 'string',
-    required: true,
-    jsonSchema: { description: 'Field name', minLength: 1, maxLength: 50 },
-  })
-  field: string;
+export class Credential extends BaseCredential {
+  constructor(data?: Partial<Credential>) {
+    super(data);
 
-  @property({
-    type: 'number',
-    required: true,
-    jsonSchema: { description: 'Maximum file size in bytes', minimum: 1 },
-  })
-  max_size: number;
+    /* Set default data */
+    this.id = this.id ?? new ObjectId();
+    this.created_at = this.created_at ?? new Date();
+    this.allowed_files = this.allowed_files ?? [];
+    this.status = this.status ?? EnumTokenStatus.NORMAL;
+    this.uploaded_files = this.uploaded_files ?? [];
+  }
 
-  @property({
-    type: 'string',
-    required: false,
-    jsonSchema: { description: 'MIME type' },
-  })
-  mime_type?: string;
-
-  @property({
-    type: 'string',
-    required: false,
-    jsonSchema: { description: 'File id to replace with' },
-  })
-  replace_with?: string;
-
-  @property({
-    type: 'boolean',
-    required: true,
-    jsonSchema: { description: 'Set Access level to private' },
-  })
-  is_private: boolean;
-}
-export type AllowedFiles = AllowedFile[];
-
-@model()
-export class UploadedFile {
-  @property({
-    type: 'string',
-    required: true,
-    jsonSchema: { description: 'File id' },
-  })
-  id: string;
-
-  @property({
-    type: 'string',
-    required: true,
-    jsonSchema: { description: 'File fieldname' },
-  })
-  fieldname: string;
-
-  @property({
-    type: 'string',
-    required: true,
-    jsonSchema: { description: 'File mimetype' },
-  })
-  mimetype: string;
-
-  @property({
-    type: 'string',
-    required: true,
-    jsonSchema: { description: 'File originalname' },
-  })
-  originalname: string;
-
-  @property({
-    type: 'number',
-    required: true,
-    jsonSchema: { description: 'File size' },
-  })
-  size: number;
-
-  @property({
-    type: 'object',
-    required: false,
-    default: {},
-    jsonSchema: {
-      description: 'File meta data',
-      additionalProperties: { type: ['string', 'number'] },
-    },
-  })
-  meta?: FileMeta;
-
-  @property({
-    type: 'boolean',
-    required: true,
-    jsonSchema: { description: 'Set file access level' },
-  })
-  is_private?: boolean;
-
-  @property({
-    type: 'string',
-    required: true,
-    jsonSchema: { description: 'File owner' },
-  })
-  owner: string;
-}
-export type UploadedFiles = UploadedFile[];
-
-@model()
-export class Credential extends Model {
   setMetadata(field: string, meta?: FileMeta): UploadedFile {
     const uploadedFile = this.uploaded_files.find(x => x.fieldname === field);
     if (!uploadedFile) {
@@ -216,56 +129,7 @@ export class Credential extends Model {
         : undefined,
     });
   }
-
-  constructor(data?: Partial<Credential>) {
-    super(data);
-
-    /* Set default data */
-    this.id = this.id ?? new ObjectId();
-    this.created_at = this.created_at ?? new Date();
-    this.allowed_files = this.allowed_files ?? [];
-    this.status = this.status ?? EnumTokenStatus.NORMAL;
-    this.uploaded_files = this.uploaded_files ?? [];
-  }
-
-  @property({ type: 'string', id: true, generated: false, required: true })
-  id: string;
-  @property({ type: 'string', required: true }) allowed_user: string;
-
-  @property.array(AllowedFile, {
-    required: true,
-    jsonSchema: { description: 'Allowed files list' },
-  })
-  allowed_files: AllowedFiles;
-
-  @property.array(UploadedFile, {
-    required: false,
-    default: [],
-    jsonSchema: { description: 'Uploaded files list' },
-  })
-  uploaded_files: UploadedFiles;
-
-  @property({
-    type: 'number',
-    jsonSchema: { description: 'Token expire time', type: 'number' },
-  })
-  expire_time: number;
-
-  @property({ type: 'date', required: true }) created_at: string;
-  @property({
-    type: 'number',
-    required: true,
-    jsonSchema: {
-      description: 'Token status',
-      type: 'number',
-      enum: Object.values(EnumTokenStatus),
-    },
-  })
-  status: EnumTokenStatus;
 }
 
-export interface TokenRelations {
-  // describe navigational properties here
-}
-
+export interface TokenRelations { }
 export type TokenWithRelations = Credential & TokenRelations;
