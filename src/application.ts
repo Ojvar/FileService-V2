@@ -3,32 +3,32 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-import { BootMixin } from '@loopback/boot';
-import { ApplicationConfig } from '@loopback/core';
-import { CronComponent } from '@loopback/cron';
-import { RepositoryMixin } from '@loopback/repository';
-import { RestApplication } from '@loopback/rest';
+import {BootMixin} from '@loopback/boot';
+import {ApplicationConfig} from '@loopback/core';
+import {CronComponent} from '@loopback/cron';
+import {RepositoryMixin} from '@loopback/repository';
+import {RestApplication} from '@loopback/rest';
 import {
   RestExplorerBindings,
   RestExplorerComponent,
 } from '@loopback/rest-explorer';
-import { ServiceMixin } from '@loopback/service-proxy';
-import { ObjectId } from 'bson';
-import { Options, diskStorage } from 'multer';
-import { join, resolve } from 'path';
-import { CronJobComponent } from './components';
-import { PRUNE_EXPIRED_CREDENTIALS_CRONJOB_CONFIG } from './crontabs';
-import { FILE_STORAGE_DATASOURCE_CONFIG } from './datasources';
-import { FileHandlerInterceptor, STORAGE_DIRECTORY } from './interceptors';
+import {ServiceMixin} from '@loopback/service-proxy';
+import {ObjectId} from 'bson';
+import {diskStorage, Options} from 'multer';
+import {join, resolve} from 'path';
+import {CronJobComponent} from './components';
+import {PRUNE_EXPIRED_CREDENTIALS_CRONJOB_CONFIG} from './crontabs';
+import {FILE_STORAGE_DATASOURCE_CONFIG} from './datasources';
+import {FileHandlerInterceptor, STORAGE_DIRECTORY} from './interceptors';
 import {
   KCAuthenticationComponent,
   KeycloakComponent,
   KeycloakSequence,
 } from './lib-keycloak/src';
-import { RedisComponent, REDIS_SERVICE_CONFING } from './lib-redis/src';
-import { CREDENTIAL_MANAGER_SERVICE_CONFIG } from './services';
+import {RedisComponent, REDIS_SERVICE_CONFING} from './lib-redis/src';
+import {CREDENTIAL_MANAGER_SERVICE_CONFIG} from './services';
 
-export { ApplicationConfig };
+export {ApplicationConfig};
 
 export class FileServiceApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
@@ -40,7 +40,7 @@ export class FileServiceApplication extends BootMixin(
     this.static('/', join(__dirname, '../public'));
 
     // Customize @loopback/rest-explorer configuration here
-    this.configure(RestExplorerBindings.COMPONENT).to({ path: '/explorer' });
+    this.configure(RestExplorerBindings.COMPONENT).to({path: '/explorer'});
     this.component(RestExplorerComponent);
 
     this.projectRoot = __dirname;
@@ -52,10 +52,7 @@ export class FileServiceApplication extends BootMixin(
       },
     };
 
-    this.configApp();
-  }
-
-  configApp() {
+    /* Config app */
     this.configKeycloak();
     this.configCredentialManager();
     this.configCronJobs();
@@ -90,14 +87,14 @@ export class FileServiceApplication extends BootMixin(
   }
 
   private configCredentialManager() {
-    const { CREDENTIAL_MANAGER_BUCKET_INTERVAL } = process.env;
+    const {CREDENTIAL_MANAGER_BUCKET_INTERVAL} = process.env;
     this.bind(CREDENTIAL_MANAGER_SERVICE_CONFIG).to({
       bucketInterval: +CREDENTIAL_MANAGER_BUCKET_INTERVAL * 1000,
     });
   }
 
   private configCronJobs() {
-    const { PRUNE_EXPIRED_CREDENTIALS_CRON_TIME } = process.env;
+    const {PRUNE_EXPIRED_CREDENTIALS_CRON_TIME} = process.env;
     this.component(CronComponent);
     this.component(CronJobComponent);
     this.bind(PRUNE_EXPIRED_CREDENTIALS_CRONJOB_CONFIG).to({
@@ -106,11 +103,11 @@ export class FileServiceApplication extends BootMixin(
   }
 
   private configRedis() {
-    const { REDIS_HOST, REDIS_DB, REDIS_PORT, REDIS_USERNAME, REDIS_PASSWORD } =
+    const {REDIS_HOST, REDIS_DB, REDIS_PORT, REDIS_USERNAME, REDIS_PASSWORD} =
       process.env;
     this.component(RedisComponent);
     this.bind(REDIS_SERVICE_CONFING).to({
-      socket: { host: REDIS_HOST ?? 'localhost', port: +(REDIS_PORT ?? '6379') },
+      socket: {host: REDIS_HOST ?? 'localhost', port: +(REDIS_PORT ?? '6379')},
       username: REDIS_USERNAME,
       password: REDIS_PASSWORD,
       database: +(REDIS_DB ?? '0'),
@@ -118,12 +115,12 @@ export class FileServiceApplication extends BootMixin(
   }
 
   configMulter() {
-    const { FILE_STORAGE, MAX_FILE_SIZE } = process.env;
+    const {FILE_STORAGE, MAX_FILE_SIZE} = process.env;
     const destination = resolve(FILE_STORAGE || resolve('.sandbox'));
     this.bind(STORAGE_DIRECTORY).to(destination);
 
     const multerOptions: Options = {
-      limits: { fileSize: +(MAX_FILE_SIZE ?? '2097152') },
+      limits: {fileSize: +(MAX_FILE_SIZE ?? '2097152')},
       storage: diskStorage({
         destination,
         filename: (_req: unknown, _file: unknown, cb: Function) =>
