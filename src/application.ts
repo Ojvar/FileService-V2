@@ -105,13 +105,13 @@ export class FileServiceApplication extends BootMixin(
   private configRedis() {
     const {REDIS_HOST, REDIS_DB, REDIS_PORT, REDIS_USERNAME, REDIS_PASSWORD} =
       process.env;
-    this.component(RedisComponent);
     this.bind(REDIS_SERVICE_CONFING).to({
       socket: {host: REDIS_HOST ?? 'localhost', port: +(REDIS_PORT ?? '6379')},
       username: REDIS_USERNAME,
       password: REDIS_PASSWORD,
       database: +(REDIS_DB ?? '0'),
     });
+    this.component(RedisComponent);
   }
 
   configMulter() {
