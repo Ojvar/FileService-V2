@@ -36,10 +36,6 @@ export class FileServiceApplication extends BootMixin(
   constructor(options: ApplicationConfig = {}) {
     super(options);
 
-    if (options.basePath) {
-      this.basePath(options.basePath);
-    }
-
     // Set up default home page
     this.static('/', join(__dirname, '../public'));
 

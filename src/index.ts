@@ -36,6 +36,7 @@ if (require.main === module) {
       },
       port: +(process.env.PORT ?? 3000),
       host: process.env.HOST,
+      basePath: process.env.BASE_PATH ?? "",
       ...(isHttp
         ? {}
         : {
