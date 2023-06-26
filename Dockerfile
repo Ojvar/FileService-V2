@@ -1,6 +1,6 @@
 ## BUILD STAGE
 # Check out https://hub.docker.com/_/node to select a new base image
-FROM knode0.qeng.ir:5000/node:20-slim AS stage_env_prepare
+FROM docker.qeng.ir/node:20-slim AS stage_env_prepare
 RUN npm i -g npm@latest
 USER node
 RUN mkdir -p /home/node/app
@@ -13,7 +13,7 @@ COPY --chown=node . .
 RUN npm run build
 
 ## DEPLOY STAGE
-FROM knode0.qeng.ir:5000/node:20-slim as stage_deploy
+FROM docker.qeng.ir/node:20-slim as stage_deploy
 RUN apt-get update -y \
     && apt-get upgrade -y \
     && apt-get install -y curl \
