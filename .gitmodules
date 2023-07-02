@@ -1,9 +1,9 @@
 [submodule "src/lib-keycloak"]
 	path = src/lib-keycloak
-	url = https://oauth2:_6ww-F15riCpYqWScKBb@gitlab.qeng.ir/qeng/lib-keycloak.git
+	url = git@gitlab.qeng.ir:qeng/libraries/lib-keycloak.git
 [submodule "src/lib-redis"]
 	path = src/lib-redis
-	url = git@gitlab.qeng.ir:qeng/lib-redis.git
+	url = git@gitlab.qeng.ir:qeng/libraries/lib-redis.git
 [submodule "src/lib-models"]
 	path = src/lib-models
-	url = git@gitlab.qeng.ir:qeng/lib-models.git
+	url = git@gitlab.qeng.ir:qeng/libraries/lib-models.git
