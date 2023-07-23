@@ -7,3 +7,6 @@
 [submodule "src/lib-models"]
 	path = src/lib-models
 	url = git@gitlab.qeng.ir:qeng/libraries/lib-models.git
+[submodule "src/lib-sentry"]
+	path = src/lib-sentry
+	url = git@gitlab.qeng.ir:qeng/libraries/lib-sentry.git
