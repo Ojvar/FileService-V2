@@ -16,9 +16,12 @@ declare namespace NodeJS {
     MONGO_PASSWORD: string;
 
     FILE_STORAGE: string;
-    MAX_FILE_SIZE: number;
+    MAX_FILE_SIZE: string;
 
     PRUNE_EXPIRED_CREDENTIALS_CRON_TIME: string;
-    CREDENTIAL_MANAGER_BUCKET_INTERVAL: number;
+    CREDENTIAL_MANAGER_BUCKET_INTERVAL: string;
+
+    KEYCLOAK_ALLOWED_LIST: string;
+    KEYCLOAK_REJECTED_LIST: string;
   }
 }

@@ -24,10 +24,14 @@ import {
   KCAuthenticationComponent,
   KeycloakComponent,
   KeycloakSequence,
+  KEYCLOAK_AGENT_SERVICE_CONFIG,
+  KEYCLOAK_DATASOURCE_CONFIG,
+  KEYCLOAK_LOCAL_ACL,
 } from './lib-keycloak/src';
 import {RedisComponent, REDIS_SERVICE_CONFING} from './lib-redis/src';
 import {CREDENTIAL_MANAGER_SERVICE_CONFIG} from './services';
 import * as Sentry from '@sentry/node';
+import KeycloakJson from './keycloak.json';
 import {SentryComponent, SENTRY_INTERCEPTOR_CONFIG} from './lib-sentry/src';
 
 export {ApplicationConfig};
@@ -81,9 +85,28 @@ export class FileServiceApplication extends BootMixin(
   }
 
   private configKeycloak() {
-    this.sequence(KeycloakSequence);
-    this.component(KeycloakComponent);
+    const {KEYCLOAK_ALLOWED_LIST, KEYCLOAK_REJECTED_LIST} = process.env;
+    const splitRegex = new RegExp(/[,;\t\ ]/, 'g');
+    const allowed_roles = (KEYCLOAK_ALLOWED_LIST ?? '')
+      .split(splitRegex)
+      .filter(x => !!x);
+    const rejected_roles = (KEYCLOAK_REJECTED_LIST ?? '')
+      .split(splitRegex)
+      .filter(x => !!x);
+
+    this.bind(KEYCLOAK_LOCAL_ACL).to({rejected_roles, allowed_roles});
+    this.bind(KEYCLOAK_DATASOURCE_CONFIG).to({
+      baseURL: KeycloakJson['auth-server-url'],
+    });
+    this.bind(KEYCLOAK_AGENT_SERVICE_CONFIG).to({
+      realm: KeycloakJson.realm,
+      clientId: KeycloakJson.resource,
+      clientSecret: KeycloakJson.credentials.secret,
+    });
+
     this.component(KCAuthenticationComponent);
+    this.component(KeycloakComponent);
+    this.sequence(KeycloakSequence);
   }
 
   private configFileStorage() {
