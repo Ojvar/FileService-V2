@@ -30,7 +30,6 @@ import {
 } from './lib-keycloak/src';
 import {RedisComponent, REDIS_SERVICE_CONFING} from './lib-redis/src';
 import {CREDENTIAL_MANAGER_SERVICE_CONFIG} from './services';
-import * as Sentry from '@sentry/node';
 import KeycloakJson from './keycloak.json';
 import {SentryComponent, SENTRY_INTERCEPTOR_CONFIG} from './lib-sentry/src';
 
@@ -75,11 +74,8 @@ export class FileServiceApplication extends BootMixin(
     this.bind(SENTRY_INTERCEPTOR_CONFIG).to({
       dsn: SENTRY_DSN,
       tracesSampleRate: parseFloat(SENTRY_SAMPLE_RATE ?? '1.0'),
-      integrations: [
-        new Sentry.Integrations.Http({tracing: true}),
-        // new Sentry.Integrations.Express({app}),
-        ...Sentry.autoDiscoverNodePerformanceMonitoringIntegrations(),
-      ],
+      integrations: integrations =>
+        integrations.filter(integration => integration.name !== 'Http'),
     });
     this.component(SentryComponent);
   }
