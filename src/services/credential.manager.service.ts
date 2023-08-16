@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { BindingKey, BindingScope, inject, injectable } from '@loopback/core';
-import { ObjectId } from 'bson';
-import { STORAGE_DIRECTORY } from '../interceptors';
-import { RedisService, REDIS_SERVICE } from '../lib-redis/src';
-import { Credential } from '../models';
-import { StringArray } from '../types';
-import { FileService, FILE_SERVICE } from './file.service';
+import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
+import {ObjectId} from 'bson';
+import {REDIS_SERVICE, RedisService} from '../lib-redis/src';
+import {Credential} from '../models';
+import {StringArray} from '../types';
+import {FILE_SERVICE, FileService} from './file.service';
 
 export type CredentialManagerServiceConfig = {
   bucketInterval: number;
@@ -25,14 +24,14 @@ export const CREDENTIAL_MANAGER_SERVICE_CONFIG =
     'services.config.CredentialManagerService',
   );
 
-@injectable({ scope: BindingScope.TRANSIENT })
+@injectable({scope: BindingScope.TRANSIENT})
 export class CredentialManagerService {
   constructor(
     @inject(REDIS_SERVICE) private redisService: RedisService,
     @inject(FILE_SERVICE) private fileService: FileService,
     @inject(CREDENTIAL_MANAGER_SERVICE_CONFIG)
     private configs: CredentialManagerServiceConfig,
-  ) { }
+  ) {}
 
   async pruneLastExpiredEntry() {
     const lastEntryTime = +new Date() - this.configs.bucketInterval;
@@ -102,13 +101,12 @@ export class CredentialManagerService {
   private getRedisAllKey(): string {
     return `entries_*`;
   }
+
   private getRedisKey(date: number): string {
     const entryIndex = this.getEntry(date);
     return `entries_${entryIndex}`;
   }
-  // private getRedisKeyByEntryIndex(entryIndex: number | string): string {
-  //   return `entries_${entryIndex}`;
-  // }
+
   private getEntry(timeStamp: number): number {
     return Math.ceil(timeStamp / this.configs.bucketInterval);
   }
