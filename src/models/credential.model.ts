@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { HttpErrors } from '@loopback/rest';
-import { ObjectId } from 'bson';
-import { FILE_MANAGER_SERVICE_DTO } from '../dto';
-import { StringArray } from '../types';
+import {HttpErrors} from '@loopback/rest';
+import {ObjectId} from 'bson';
+import {FILE_MANAGER_SERVICE_DTO} from '../dto';
+import {StringArray} from '../types';
 import {
   Credential as BaseCredential,
   EnumTokenStatus,
   UploadedFile,
 } from '../lib-models/src';
-import { FileMeta } from './file.model';
+import {FileMeta} from './file.model';
 
 export {
   UploadedFiles,
@@ -131,5 +131,5 @@ export class Credential extends BaseCredential {
   }
 }
 
-export interface TokenRelations { }
+export interface TokenRelations {}
 export type TokenWithRelations = Credential & TokenRelations;

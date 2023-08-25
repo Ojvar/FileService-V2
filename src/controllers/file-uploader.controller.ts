@@ -1,4 +1,4 @@
-import { inject, intercept } from '@loopback/core';
+import {inject, intercept} from '@loopback/core';
 import {
   post,
   Request,
@@ -6,15 +6,15 @@ import {
   getModelSchemaRef,
   param,
 } from '@loopback/rest';
-import { FileHandlerInterceptor } from '../interceptors';
-import { SECURITY_ROLES } from '../keys';
+import {FileHandlerInterceptor} from '../interceptors';
+import {SECURITY_ROLES} from '../keys';
 import {
   KeycloakSecurity,
   KEYCLOAK_SECURITY_SERVICE,
   protect,
 } from '../lib-keycloak/src';
-import { UploadedFile } from '../models';
-import { FileManagerService, FILE_MANAGER_SERVICE } from '../services';
+import {UploadedFile} from '../models';
+import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
 export class FileUploaderController {
   constructor(
@@ -22,7 +22,7 @@ export class FileUploaderController {
     private fileManagerService: FileManagerService,
     @inject(KEYCLOAK_SECURITY_SERVICE)
     private keycloakSecurity: KeycloakSecurity,
-  ) { }
+  ) {}
 
   @intercept(protect(SECURITY_ROLES.NO_BODY))
   @intercept(FileHandlerInterceptor.BINDING_KEY)
@@ -33,16 +33,16 @@ export class FileUploaderController {
     responses: {
       200: {
         content: {
-          'application/json': { schema: getModelSchemaRef(UploadedFile) },
+          'application/json': {schema: getModelSchemaRef(UploadedFile)},
           description: 'Files and fields',
         },
       },
     },
   })
   async fileUpload(
-    @param.header.string('file-token', { description: 'FileUpload token' })
+    @param.header.string('file-token', {description: 'FileUpload token'})
     token: string,
-    @param.path.string('field', { description: 'Field name' })
+    @param.path.string('field', {description: 'Field name'})
     field: string,
     @requestBody.file({
       description: 'multipart/form-data value.',
@@ -50,7 +50,7 @@ export class FileUploaderController {
     })
     request: Request,
   ): Promise<UploadedFile> {
-    const { sub: userId } = await this.keycloakSecurity.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurity.getUserInfo();
     return this.fileManagerService.uploadFile(userId, token, field, request);
   }
 }

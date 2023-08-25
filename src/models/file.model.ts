@@ -1,5 +1,4 @@
- 
-import { StringArray } from '../types';
+import {StringArray} from '../types';
 
 export {
   EnumFileStatus,
@@ -7,7 +6,7 @@ export {
   FileMetaArray,
   UploadData,
 } from '../lib-models/src';
-import { File as BaseFile, EnumFileStatus, FileMeta } from '../lib-models/src';
+import {File as BaseFile, EnumFileStatus, FileMeta} from '../lib-models/src';
 
 export class File extends BaseFile {
   constructor(data?: Partial<File>) {
@@ -44,5 +43,5 @@ export class File extends BaseFile {
 }
 export type Files = Array<File>;
 
-export interface FileRelations { }
+export interface FileRelations {}
 export type FileWithRelations = File & FileRelations;

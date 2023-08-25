@@ -1,4 +1,4 @@
-import { inject, intercept } from '@loopback/core';
+import {inject, intercept} from '@loopback/core';
 import {
   del,
   get,
@@ -14,14 +14,14 @@ import {
   FILE_MANAGER_SERVICE_DTO,
   OBJECT_ID_PATTERN,
 } from '../dto';
-import { SECURITY_ROLES } from '../keys';
+import {SECURITY_ROLES} from '../keys';
 import {
   KeycloakSecurity,
   KEYCLOAK_SECURITY_SERVICE,
   protect,
 } from '../lib-keycloak/src';
-import { FileMeta, FileMetaArray } from '../models';
-import { FileManagerService, FILE_MANAGER_SERVICE } from '../services';
+import {FileMeta, FileMetaArray} from '../models';
+import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
 export class FileController {
   constructor(
@@ -29,24 +29,24 @@ export class FileController {
     private fileManagerService: FileManagerService,
     @inject(KEYCLOAK_SECURITY_SERVICE)
     private keycloakSecurityService: KeycloakSecurity,
-  ) { }
+  ) {}
 
   @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
   @patch('/files/edit/{file_id}', {
     tags: ['files'],
     description: 'Edit a file',
     summary: 'Edit a file',
-    responses: { 204: { description: 'File edited successfully' } },
+    responses: {204: {description: 'File edited successfully'}},
   })
   async editFile(
     @param.path.string('file_id', {
       description: 'File id',
-      schema: { pattern: OBJECT_ID_PATTERN },
+      schema: {pattern: OBJECT_ID_PATTERN},
     })
     fileId: string,
     @requestBody() body: FILE_MANAGER_SERVICE_DTO.EditFileDTO,
   ): Promise<void> {
-    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
     return this.fileManagerService.editFile(fileId, body, userId);
   }
 
@@ -60,7 +60,7 @@ export class FileController {
         description: 'Files list',
         content: {
           'application/json': {
-            schema: { type: 'array', items: getModelSchemaRef(FileInfoDTO) },
+            schema: {type: 'array', items: getModelSchemaRef(FileInfoDTO)},
           },
         },
       },
@@ -70,13 +70,13 @@ export class FileController {
     @requestBody({
       content: {
         'application/json': {
-          schema: { type: 'array', items: { type: 'object' } },
+          schema: {type: 'array', items: {type: 'object'}},
         },
       },
     })
     body: FileMetaArray,
   ): Promise<FileInfoListDTO> {
-    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
     return this.fileManagerService.searchMetadataAdvance(body, userId);
   }
 
@@ -90,7 +90,7 @@ export class FileController {
         description: 'Files list',
         content: {
           'application/json': {
-            schema: { type: 'array', items: getModelSchemaRef(FileInfoDTO) },
+            schema: {type: 'array', items: getModelSchemaRef(FileInfoDTO)},
           },
         },
       },
@@ -99,7 +99,7 @@ export class FileController {
   async searchMetadata(
     @requestBody() body: FileMeta,
   ): Promise<FileInfoListDTO> {
-    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
     return this.fileManagerService.searchMetadata(body, userId);
   }
 
@@ -108,12 +108,12 @@ export class FileController {
     tags: ['files'],
     description: 'Update metadata of a file',
     summary: 'Update file metadata',
-    responses: { 204: { description: 'Metadata updated successfully' } },
+    responses: {204: {description: 'Metadata updated successfully'}},
   })
   async updateMetadata(
     @param.path.string('id', {
       description: 'File id',
-      schema: { pattern: OBJECT_ID_PATTERN },
+      schema: {pattern: OBJECT_ID_PATTERN},
     })
     id: string,
     @requestBody() body: FILE_MANAGER_SERVICE_DTO.UpdateMetadataDTO,
@@ -129,18 +129,18 @@ export class FileController {
     responses: {
       200: {
         description: 'File access token',
-        content: { 'text/plain': { schema: { type: 'string' } } },
+        content: {'text/plain': {schema: {type: 'string'}}},
       },
     },
   })
   async generateFileAccessToken(
     @param.path.string('id', {
       description: 'File id',
-      schema: { pattern: OBJECT_ID_PATTERN },
+      schema: {pattern: OBJECT_ID_PATTERN},
     })
     id: string,
   ): Promise<string> {
-    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
     const accessToken = await this.fileManagerService.generateAccessToken(
       id,
       userId,
@@ -158,7 +158,7 @@ export class FileController {
         description: 'File(s) information',
         content: {
           'application/json': {
-            schema: { type: 'array', items: getModelSchemaRef(FileInfoDTO) },
+            schema: {type: 'array', items: getModelSchemaRef(FileInfoDTO)},
           },
         },
       },
@@ -167,7 +167,7 @@ export class FileController {
   async getFilesInfo(
     @requestBody() body: FILE_MANAGER_SERVICE_DTO.GetFileInfoRequestDTO,
   ): Promise<FileInfoListDTO> {
-    const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
     return this.fileManagerService.getFilesInfo(body.files, userId);
   }
 
@@ -176,7 +176,7 @@ export class FileController {
     tags: ['files'],
     description: 'Remove file',
     summary: 'Remove file',
-    responses: { 204: { description: 'Remove successfully' } },
+    responses: {204: {description: 'Remove successfully'}},
   })
   async removeFile(@param.path.string('id') id: string): Promise<void> {
     return this.fileManagerService.removeFile(id);

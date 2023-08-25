@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Prettier Check"
+yarn prettier:check
+echo "Prettier Check: [OK]"
+
+echo "Eslint Check"
+yarn eslint
+echo "Eslint Check: [OK]"
+
+echo "Build"
+yarn build
+echo "Build: [OK]"

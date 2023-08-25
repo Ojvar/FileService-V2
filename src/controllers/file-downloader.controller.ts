@@ -1,11 +1,11 @@
-import { inject } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { get, param, Response, RestBindings } from '@loopback/rest';
-import { resolve } from 'path';
-import { OBJECT_ID_PATTERN } from '../dto';
-import { STORAGE_DIRECTORY } from '../interceptors';
-import { FileRepository } from '../repositories';
-import { FileManagerService, FILE_MANAGER_SERVICE } from '../services';
+import {inject} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {get, param, Response, RestBindings} from '@loopback/rest';
+import {resolve} from 'path';
+import {OBJECT_ID_PATTERN} from '../dto';
+import {STORAGE_DIRECTORY} from '../interceptors';
+import {FileRepository} from '../repositories';
+import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
 
 export class FileDownloaderController {
   constructor(
@@ -13,7 +13,7 @@ export class FileDownloaderController {
     @inject(FILE_MANAGER_SERVICE)
     private fileManagerService: FileManagerService,
     @repository(FileRepository) private fileRepository: FileRepository,
-  ) { }
+  ) {}
 
   @get('/files/download/{id}', {
     tags: ['files'],
@@ -24,7 +24,7 @@ export class FileDownloaderController {
         description: 'The file content',
         content: {
           'application/octet-stream': {
-            schema: { type: 'string', format: 'binary' },
+            schema: {type: 'string', format: 'binary'},
           },
         },
       },
@@ -34,10 +34,10 @@ export class FileDownloaderController {
     @inject(RestBindings.Http.RESPONSE) response: Response,
     @param.path.string('id', {
       description: 'File id',
-      schema: { pattern: OBJECT_ID_PATTERN },
+      schema: {pattern: OBJECT_ID_PATTERN},
     })
     id: string,
-    @param.query.string('token', { description: 'Access token', required: false })
+    @param.query.string('token', {description: 'Access token', required: false})
     accessToken = '',
   ): Promise<Response> {
     const fileInfo = await this.fileRepository.getFileInfo(id);
