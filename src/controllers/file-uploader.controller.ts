@@ -1,20 +1,20 @@
 import {inject, intercept} from '@loopback/core';
 import {
+  getModelSchemaRef,
+  param,
   post,
   Request,
   requestBody,
-  getModelSchemaRef,
-  param,
 } from '@loopback/rest';
 import {FileHandlerInterceptor} from '../interceptors';
 import {SECURITY_ROLES} from '../keys';
 import {
-  KeycloakSecurity,
   KEYCLOAK_SECURITY_SERVICE,
+  KeycloakSecurity,
   protect,
 } from '../lib-keycloak/src';
 import {UploadedFile} from '../models';
-import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
+import {FILE_MANAGER_SERVICE, FileManagerService} from '../services';
 
 export class FileUploaderController {
   constructor(
@@ -40,10 +40,11 @@ export class FileUploaderController {
     },
   })
   async fileUpload(
-    @param.header.string('file-token', {description: 'FileUpload token'})
+    @param.header.string('file-token', {
+      description: 'FileUpload token',
+    })
     token: string,
-    @param.path.string('field', {description: 'Field name'})
-    field: string,
+    @param.path.string('field', {description: 'Field name'}) field: string,
     @requestBody.file({
       description: 'multipart/form-data value.',
       required: true,

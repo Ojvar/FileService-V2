@@ -2,8 +2,8 @@
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {HttpErrors, Model, Request} from '@loopback/rest';
 import {ObjectId} from 'bson';
-import {FileInfoDTO, FileInfoListDTO, FILE_MANAGER_SERVICE_DTO} from '../dto';
-import {RedisService, REDIS_SERVICE} from '../lib-redis/src';
+import {FILE_MANAGER_SERVICE_DTO, FileInfoDTO, FileInfoListDTO} from '../dto';
+import {REDIS_SERVICE, RedisService} from '../lib-redis/src';
 import {
   Credential,
   File,
@@ -13,11 +13,12 @@ import {
   UploadedFile,
 } from '../models';
 import {
-  CredentialManagerService,
   CREDENTIAL_MANAGER_SERVICE,
+  CredentialManagerService,
 } from './credential.manager.service';
-import {FileStorageService, FILE_STORAGE_SERVICE} from './file-storage.service';
-import {FileService, FILE_SERVICE} from './file.service';
+import {FILE_STORAGE_SERVICE, FileStorageService} from './file-storage.service';
+import {FILE_SERVICE, FileService} from './file.service';
+import {AnyObject} from '@loopback/repository';
 
 export const FILE_MANAGER_SERVICE = BindingKey.create<FileManagerService>(
   'services.FileManagerService',
@@ -234,6 +235,10 @@ export class FileManagerService {
   ): Promise<UploadedFile> {
     /* Fix field-name, it is 'file' as default */
     const uploadedFile = this.getUploadedFile(request, field);
+    uploadedFile.originalname = Buffer.from(
+      uploadedFile.originalname,
+      'latin1',
+    ).toString('utf8');
 
     /* Fetch and Validate credential */
     let credential;
@@ -247,7 +252,7 @@ export class FileManagerService {
 
       /* Set is_private field */
       uploadedFile.is_private = credential.allowed_files.find(
-        x => x.field === uploadedFile.fieldname,
+        (x: AnyObject) => x.field === uploadedFile.fieldname,
       )?.is_private;
       uploadedFile.owner = userId;
     } catch (err) {

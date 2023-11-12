@@ -1,6 +1,14 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+export VER=$(npm pkg get version | xargs echo)
+
+echo "Update index.html version"
+echo " > Current Version: $VER"
+sed -i -E "s/Version [0-9\.]+[0-9]/Version ${VER}/g" public/index.html
+git add public/index.html
+echo "Update index.html version: [OK]"
+
 echo "Prettier Check"
 yarn prettier:check
 echo "Prettier Check: [OK]"
