@@ -113,9 +113,8 @@ export class FileManagerService {
     metadata: FileMeta,
     userId: string,
   ): Promise<FileInfoListDTO> {
-    const searchResult: Files = await this.fileStorageService.filterByMetadata(
-      metadata,
-    );
+    const searchResult: Files =
+      await this.fileStorageService.filterByMetadata(metadata);
     const result: FileInfoListDTO = [];
     for (const file of searchResult) {
       const token = await this.generateAccessToken(file.getId(), userId);
