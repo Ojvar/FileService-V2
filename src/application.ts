@@ -1,12 +1,12 @@
-import {BootMixin} from '@loopback/boot';
-import {ApplicationConfig} from '@loopback/core';
-import {RepositoryMixin} from '@loopback/repository';
-import {RestApplication} from '@loopback/rest';
+import { BootMixin } from '@loopback/boot';
+import { ApplicationConfig } from '@loopback/core';
+import { RepositoryMixin } from '@loopback/repository';
+import { RestApplication } from '@loopback/rest';
 import {
   RestExplorerBindings,
   RestExplorerComponent,
 } from '@loopback/rest-explorer';
-import {ServiceMixin} from '@loopback/service-proxy';
+import { ServiceMixin } from '@loopback/service-proxy';
 import {
   ConsumersBooter,
   MessageHandlerErrorBehavior,
@@ -14,19 +14,19 @@ import {
   RabbitmqBindings,
   RabbitmqComponent,
   RabbitmqComponentConfig,
-} from 'loopback-rabbitmq';
+} from './loopback-rabbitmq/src';
 import multer from 'multer';
 import path from 'path';
-import {COMMON_KEYS, COMMON_TYPES, KeycloakComponent} from 'qeng-common';
-import {RedisClientOptions} from 'redis';
-import {v4 as uuidV4} from 'uuid';
-import {KCAuthenticationComponent} from './components';
-import {RequestConfig} from './controllers';
-import {MulterInterceptor} from './interceptors';
-import {FileService} from './keys';
-import {MySequence} from './sequence';
+import { RedisClientOptions } from 'redis';
+import { v4 as uuidV4 } from 'uuid';
+import { KCAuthenticationComponent, KeycloakComponent } from './components';
+import { RequestConfig } from './controllers';
+import { MulterInterceptor } from './interceptors';
+import { COMMON_KEYS, FileService } from './keys';
+import { MySequence } from './sequence';
+import { COMMON_TYPES } from './types';
 
-export {ApplicationConfig};
+export { ApplicationConfig };
 
 export class FileServiceApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
@@ -42,7 +42,7 @@ export class FileServiceApplication extends BootMixin(
 
     // Customize @loopback/rest-explorer configuration here
     if (false === options.rest.apiExplorer.disabled) {
-      this.configure(RestExplorerBindings.COMPONENT).to({path: '/explorer'});
+      this.configure(RestExplorerBindings.COMPONENT).to({ path: '/explorer' });
       this.component(RestExplorerComponent);
     }
 
@@ -77,14 +77,14 @@ export class FileServiceApplication extends BootMixin(
     /* Setup keycloak wrapper */
     this.bind<Partial<COMMON_TYPES.RestDataSourceConfig>>(
       COMMON_KEYS.KEYCLOAK_DATASOURCE_CONFIG,
-    ).to({baseURL: process.env.KEYCLOAK_URL});
+    ).to({ baseURL: process.env.KEYCLOAK_URL });
 
     /* Set upload destination folder */
     const destination =
       options.destination ?? path.join(__dirname, '../.sandbox');
     this.bind(FileService.STORAGE_DIRECTORY).to(destination);
     const multerOptions: multer.Options = {
-      limits: {fileSize: +(process.env.MAX_FILE_SIZE ?? '2097152')},
+      limits: { fileSize: +(process.env.MAX_FILE_SIZE ?? '2097152') },
       storage: multer.diskStorage({
         destination,
         filename: (req, file, cb) => cb(null, uuidV4()),
@@ -130,8 +130,8 @@ export class FileServiceApplication extends BootMixin(
         password: process.env.RABBITMQ_PASS,
         vhost: process.env.RABBITMQ_VHOST,
       },
-      producer: {idleTimeoutMillis: 10000},
-      consumer: {retries: 0, interval: 1500},
+      producer: { idleTimeoutMillis: 10000 },
+      consumer: { retries: 0, interval: 1500 },
       defaultConsumerErrorBehavior: MessageHandlerErrorBehavior.ACK,
       prefetchCount: 1,
       // exchanges: [AuthKeys.RmqExchanges.QENG_AUTH],

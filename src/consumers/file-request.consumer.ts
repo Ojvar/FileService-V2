@@ -1,16 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { inject } from '@loopback/core';
 import { repository } from '@loopback/repository';
-// import debugFactory from 'debug';
 import { unlink } from 'fs';
-import { rabbitConsume } from 'loopback-rabbitmq';
 import { resolve } from 'path';
 import { FileService } from '../keys';
 import { EnumRequestTokenStatus, RequestToken } from '../models';
 import { FileRepository } from '../repositories';
 import { RedisService } from '../services';
-
-// const trace = debugFactory('FileService:FileRequestConsumer');
+import { rabbitConsume } from '../loopback-rabbitmq/src';
 
 export class FileRequestConsumer {
   constructor(

@@ -1,6 +1,6 @@
 {
   "name": "file-service",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "description": "",
   "keywords": [
     "loopback-application",
@@ -9,7 +9,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "engines": {
-    "node": "14 || 16 || 17 || 18"
+    "node": "14 || 16 || 17 || 18 || 19 || 20 || 21"
   },
   "scripts": {
     "build": "lb-tsc",
@@ -49,36 +49,38 @@
     "!*/__tests__"
   ],
   "dependencies": {
-    "@loopback/authentication": "^9.0.3",
-    "@loopback/authentication-jwt": "^0.12.3",
-    "@loopback/boot": "^5.0.3",
-    "@loopback/core": "^4.0.3",
-    "@loopback/repository": "^5.0.3",
-    "@loopback/rest": "^12.0.3",
-    "@loopback/rest-explorer": "^5.0.3",
-    "@loopback/service-proxy": "^5.0.3",
+    "@loopback/authentication": "^11.0.0",
+    "@loopback/authentication-jwt": "^0.15.0",
+    "@loopback/boot": "^7.0.0",
+    "@loopback/core": "^6.0.0",
+    "@loopback/repository": "^7.0.0",
+    "@loopback/rest": "^14.0.0",
+    "@loopback/rest-explorer": "^7.0.0",
+    "@loopback/service-proxy": "^7.0.0",
+    "amqplib": "^0.10.3",
     "dotenv": "^16.0.0",
     "express-session": "^1.17.2",
+    "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^3.1.2",
     "keycloak-connect": "^18.0.0",
     "loopback-connector-mongodb": "^6.2.0",
-    "loopback-rabbitmq": "^2.0.2",
     "multer": "^1.4.4",
-    "qeng-common": "^0.1.74",
     "redis": "^4.1.0",
     "tslib": "^2.0.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@loopback/build": "^9.0.3",
-    "@loopback/eslint-config": "^13.0.3",
-    "@loopback/testlab": "^5.0.3",
+    "@loopback/build": "^11.0.0",
+    "@loopback/eslint-config": "^15.0.0",
+    "@loopback/testlab": "^7.0.0",
+    "@types/amqplib": "^0.10.5",
     "@types/express-session": "^1.17.4",
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/multer": "^1.4.7",
-    "@types/node": "^14.18.26",
+    "@types/node": "^16.18.86",
     "@types/uuid": "^8.3.4",
-    "eslint": "^8.22.0",
+    "eslint": "^8.57.0",
     "source-map-support": "^0.5.21",
-    "typescript": "~4.7.4"
+    "typescript": "~5.2.2"
   }
 }

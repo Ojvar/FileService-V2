@@ -13,17 +13,17 @@ import {
   ResponseObject,
   RestBindings,
 } from '@loopback/rest';
-import { FILE_DTO, getServerUrl, SECURITY_ENUM } from 'qeng-common';
-// import debugFactory from 'debug';
 import { protect } from '../interceptors';
 import { FileService } from '../keys';
 import { EnumRequestTokenStatus, File, FileData, RequestToken } from '../models';
 import { FileRepository } from '../repositories';
 import { RedisService } from '../services';
+import { FILE_DTO } from '../dto';
+import { SECURITY_ENUM } from '../enum';
+import { getServerUrl } from '../helpers';
 
 type FilesListResult = Record<string, FILE_DTO.FileItemDTO>;
 
-// const trace = debugFactory('FileService:FileController');
 const FileResponseContent: ResponseObject = {
   content: {
     'application/json': {

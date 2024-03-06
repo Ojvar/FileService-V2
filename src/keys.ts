@@ -1,11 +1,15 @@
-import {BindingKey} from '@loopback/core';
-import {TokenController} from './controllers';
-import {FileStorageDataSourceConfig} from './datasources';
+import { BindingKey } from '@loopback/core';
+import { TokenController } from './controllers';
+import { FileServiceDataSource, FileStorageDataSourceConfig, KeycloakDataSource } from './datasources';
 import {
   KeycloakConnectService,
+  KeycloakWrapperService,
   RedisService,
   UploadRequestHandlerService,
+  FileService as BaseFileService
 } from './services';
+import { COMMON_TYPES } from './types';
+import { Keycloak } from 'keycloak-connect';
 
 export namespace FileService {
   export const HEADER_TOKEN = 'file-token';
@@ -34,10 +38,45 @@ export namespace FileService {
   );
 
   export const RmqExchanges = {
-    FILE_SERVICE: {name: 'file-service', type: 'x-delayed-message'},
+    FILE_SERVICE: { name: 'file-service', type: 'x-delayed-message' },
   };
   export const RmqQueues = {
-    FILE_REQUEST: {name: 'file-upload-request', routeKey: 'file-request'},
+    FILE_REQUEST: { name: 'file-upload-request', routeKey: 'file-request' },
   };
-  export enum RmqRouteKeys {}
+  export enum RmqRouteKeys { }
+}
+
+export namespace COMMON_KEYS {
+  export const KEYCLOAK_DATASOURCE_CONFIG = BindingKey.create<
+    Partial<COMMON_TYPES.RestDataSourceConfig>
+  >('datasources.config.Keycloak');
+  export const KEYCLOAK_DATASOURCE = BindingKey.create<KeycloakDataSource>(
+    'datasources.Keycloak',
+  );
+
+  export const FILE_SERVICE = BindingKey.create<BaseFileService>(
+    'services.FileService',
+  );
+  export const KEYCLOAK_SERVICE =
+    BindingKey.create<Keycloak>('services.Keycloak');
+  export const KEYCLOAK_WAPPER_SERVICE =
+    BindingKey.create<KeycloakWrapperService>(
+      'services.KeycloakWrapperService',
+    );
+
+  export const KEYCLOAK_CONNECTOR_SERVICE =
+    BindingKey.create<KeycloakConnectService>(
+      'services.KeycloakConnectService',
+    );
+
+  export const FILE_SERVICE_DATASOURCE =
+    BindingKey.create<FileServiceDataSource>('datasources.FileService');
+
+  export const FILE_SERVICE_DATASOURCE_CONFIG = BindingKey.create<
+    Partial<COMMON_TYPES.RestDataSourceConfig>
+  >('datasources.config.FileService');
+
+  export const REDIS_SERVICE = BindingKey.create<RedisService>(
+    'services.RedisService',
+  );
 }

@@ -1,0 +1,3 @@
+[submodule "src/loopback-rabbitmq"]
+	path = src/loopback-rabbitmq
+	url = git@gitlab.qeng.ir:qeng/libraries/loopback-rabbitmq.git
