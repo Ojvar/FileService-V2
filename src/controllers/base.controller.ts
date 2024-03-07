@@ -15,7 +15,10 @@ export type UserInfo = Record<string, unknown> & {
 export class BaseController {
   protected _userData: unknown;
 
-  constructor(protected req: Request, protected keycloak: Keycloak) {}
+  constructor(
+    protected req: Request,
+    protected keycloak: Keycloak,
+  ) {}
 
   protected async getUserInfo(): Promise<UserInfo> {
     const accessToken = (this.req.kauth.grant as Grant).access_token as Token;

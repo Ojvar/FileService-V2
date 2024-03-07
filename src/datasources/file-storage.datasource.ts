@@ -1,8 +1,14 @@
-import {inject, lifeCycleObserver, LifeCycleObserver} from '@loopback/core';
+import {inject, LifeCycleObserver, lifeCycleObserver} from '@loopback/core';
 import {juggler} from '@loopback/repository';
-import debugFactory from 'debug';
 
-const trace = debugFactory('FileServie:FileStorageDataSource');
+export type FileStorageDataSourceConfig = {
+  url: string;
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  database: string;
+};
 
 const config = {
   name: 'FileStorage',
@@ -32,10 +38,7 @@ export class FileStorageDataSource
     @inject('datasources.config.FileStorage', {optional: true})
     dsConfig: object = config,
   ) {
-    dsConfig = Object.assign(dsConfig, config);
-    trace(dsConfig);
-
-    super(dsConfig);
+    super({...dsConfig, ...config});
     super.once('connected', () => {
       super.autoupdate().catch(console.error);
     });
@@ -45,12 +48,3 @@ export class FileStorageDataSource
     return super.disconnect();
   }
 }
-
-export type FileStorageDataSourceConfig = {
-  url: string;
-  host: string;
-  port: number;
-  user: string;
-  password: string;
-  database: string;
-};

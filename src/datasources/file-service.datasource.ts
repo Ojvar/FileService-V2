@@ -1,22 +1,19 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import { inject, LifeCycleObserver, lifeCycleObserver } from '@loopback/core';
-import { juggler } from '@loopback/repository';
-import debugFactory from 'debug';
-import { COMMON_KEYS } from '../keys';
-import { COMMON_TYPES } from '../types';
-
-const trace = debugFactory('Common:FileServiceDataSource');
+import {inject, LifeCycleObserver, lifeCycleObserver} from '@loopback/core';
+import {juggler} from '@loopback/repository';
+import {COMMON_KEYS} from '../keys';
+import {COMMON_TYPES} from '../types';
+import {AnyObject} from '@loopback/filter/dist/types';
 
 const config = {
   name: 'FileService',
   connector: 'rest',
-  baseURL: 'http://localhost:3000',
+  // baseURL: 'http://localhost:3000',
   crud: false,
 };
 
 const getConfig = (
-  data: COMMON_TYPES.RestDataSourceConfig,
-): COMMON_TYPES.RestDataSourceConfig => {
+  data: AnyObject & Partial<COMMON_TYPES.RestDataSourceConfig>,
+): object => {
   return {
     ...data,
     operations: [
@@ -29,9 +26,9 @@ const getConfig = (
             'content-type': 'application/json;charset=utf-8',
             authorization: 'Bearer {token}',
           },
-          body: { ref: '{ref}', allowedFiles: '{allowedFiles}' },
+          body: {ref: '{ref}', allowedFiles: '{allowedFiles}'},
         },
-        functions: { getToken: ['token', 'ref', 'allowedFiles'] },
+        functions: {getToken: ['token', 'ref', 'allowedFiles']},
       },
       {
         template: {
@@ -44,7 +41,7 @@ const getConfig = (
             'file-token': '{fileToken}',
           },
         },
-        functions: { filesList: ['token', 'ref', 'fileToken'] },
+        functions: {filesList: ['token', 'ref', 'fileToken']},
       },
       {
         template: {
@@ -57,7 +54,7 @@ const getConfig = (
           },
           body: '{fileIds}',
         },
-        functions: { filesInfo: ['token', 'fileIds'] },
+        functions: {filesInfo: ['token', 'fileIds']},
       },
       {
         template: {
@@ -70,7 +67,7 @@ const getConfig = (
             'file-token': '{fileToken}',
           },
         },
-        functions: { save: ['token', 'ref', 'fileToken'] },
+        functions: {save: ['token', 'ref', 'fileToken']},
       },
       {
         template: {
@@ -83,7 +80,7 @@ const getConfig = (
             'file-token': '{fileToken}',
           },
         },
-        functions: { commit: ['token', 'ref', 'fileToken'] },
+        functions: {commit: ['token', 'ref', 'fileToken']},
       },
     ],
   };
@@ -92,7 +89,8 @@ const getConfig = (
 @lifeCycleObserver('datasource')
 export class FileServiceDataSource
   extends juggler.DataSource
-  implements LifeCycleObserver {
+  implements LifeCycleObserver
+{
   static dataSourceName = 'FileService';
   static readonly defaultConfig = config;
 
@@ -100,12 +98,9 @@ export class FileServiceDataSource
     @inject(COMMON_KEYS.FILE_SERVICE_DATASOURCE_CONFIG, {
       optional: true,
     })
-    dsConfig: Partial<COMMON_TYPES.RestDataSourceConfig> = config,
+    dsConfig: object = config,
   ) {
-    dsConfig = getConfig(Object.assign(config, dsConfig));
-    trace(dsConfig);
-    // trace(dsConfig);
-
+    dsConfig = getConfig({...dsConfig, ...config});
     super(dsConfig);
   }
 }

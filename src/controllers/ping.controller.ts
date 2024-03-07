@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {inject} from '@loopback/core';
 import {
   get,
@@ -45,7 +44,7 @@ export class PingController {
   ping(@inject(RestBindings.Http.REQUEST) req: Request): object {
     // Reply with a greeting, the current time, the url, and request headers
     return {
-      greeting: 'Hello from LoopBack',
+      greeting: 'Hello from QENG',
       date: new Date(),
       url: this.req.url,
       headers: Object.assign({}, this.req.headers),

@@ -1,36 +1,38 @@
+## BUILD STAGE
 # Check out https://hub.docker.com/_/node to select a new base image
-FROM knode0.qeng.ir:5000/node:18-slim
-
-ARG NPM_REGISTRY=http://knode0.qeng.ir:4873/
-
+FROM docker.qeng.ir/node:21-slim AS stage_env_prepare
 RUN npm i -g npm@latest
-
-# Set to a non-root built-in user `node`
 USER node
-
-# Create app directory (with user `node`)
 RUN mkdir -p /home/node/app
-
 WORKDIR /home/node/app
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
 COPY --chown=node package*.json ./
-
-# SETUP NPM
-RUN npm set registry $NPM_REGISTRY
-
-# Install
 RUN npm install --loglevel verbose
 
-# Bundle app source code
 COPY --chown=node . .
-
 RUN npm run build
 
-# Bind to all network interfaces so that it can be mapped to the host OS
-ENV HOST=0.0.0.0 PORT=3000
+## DEPLOY STAGE
+FROM docker.qeng.ir/node:21-slim as stage_deploy
+RUN apt-get update -y \
+    && apt-get upgrade -y \
+    && apt-get install -y curl \
+    && apt-get clean autoclean \
+    && apt-get autoremove --yes \
+    && rm -rf /var/lib/{apt,dpkg,cache,log}/
 
+WORKDIR /home/node/app
+COPY --from=stage_env_prepare "/home/node/app/public" /home/node/app/public/
+COPY --from=stage_env_prepare "/home/node/app/node_modules" /home/node/app/node_modules/
+COPY --from=stage_env_prepare "/home/node/app/dist" /home/node/app/dist
+COPY --from=stage_env_prepare "/home/node/app/package*.json" /home/node/app
+
+ENV NODE_ENV=production
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+ENV HOST=0.0.0.0
+ENV PORT=80
 EXPOSE ${PORT}
 CMD [ "node", "." ]
+
+## HEALTH CHECK
+HEALTHCHECK CMD curl --insecure http://localhost/ping

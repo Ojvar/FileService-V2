@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
 export namespace PROFILE_ENUM {
   export enum EnumSummaryItems {
     ID_CERT = 'id_cert',

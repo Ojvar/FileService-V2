@@ -1,23 +1,23 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { model, property } from '@loopback/repository';
+import {model, property} from '@loopback/repository';
 import {
   enumNumberFilterFnc,
   enumStringFilterFnc,
   enumValues,
   enumValuesNumber,
 } from '../helpers';
-import { COMMON_ENUMS, COMMON_MODELS } from '../models';
-import { FILE_DTO } from './file.dto';
-import { PROFILE_ENUM } from '../enum';
+import {COMMON_ENUMS, COMMON_MODELS} from '../models';
+import {FILE_DTO} from './file.dto';
+import {PROFILE_ENUM} from '../enum';
 
 export namespace PROFILE_DTO {
   @model()
   export class AttachmentResponseDTO {
-    @property({ type: 'string' })
+    @property({type: 'string'})
     id: string;
-    @property({ type: 'created' })
+    @property({type: 'created'})
     cerated: Date;
-    @property({ type: 'updated' })
+    @property({type: 'updated'})
     updated: Date;
     @property()
     attachments?: FilesListResult | undefined;
@@ -25,15 +25,15 @@ export namespace PROFILE_DTO {
 
   @model()
   export class PersonalData {
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     first_name: string;
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     last_name: string;
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     latin_first_name: string;
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     latin_last_name: string;
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     father_name: string;
     @property({
       type: 'number',
@@ -49,64 +49,64 @@ export namespace PROFILE_DTO {
   @model()
   export class IdCertSerial {
     /* OBJECT_ID : REFERENCE TO BASE_DATA */
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     letter: string;
-    @property({ type: 'number', required: false })
+    @property({type: 'number', required: false})
     number?: number;
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     serial: number;
   }
 
   @model()
   export class IdCertItemData {
-    @property({ type: 'number' })
+    @property({type: 'number'})
     id_issuance: number;
-    @property({ type: 'number' })
+    @property({type: 'number'})
     id_number: number;
-    @property({ type: 'date' })
+    @property({type: 'date'})
     birth_date: Date;
     @property()
     birth_place: COMMON_MODELS.Location;
     @property()
     id_serial: IdCertSerial;
-    @property({ type: 'date' })
+    @property({type: 'date'})
     issuance_date: Date;
     @property()
     issuance_place: COMMON_MODELS.Location;
     /* ObjectId: Reference of Countries */
-    @property({ type: 'string' })
+    @property({type: 'string'})
     nationality: string;
   }
 
   @model()
   export class NIdCardData {
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     id: string;
   }
 
   @model()
   export class ReligionItemData {
     /* ObjectId: Refernce to of BaseData */
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     id: string;
-    @property({ type: 'string' })
+    @property({type: 'string'})
     description?: string;
   }
 
   @model()
   export class MaritalItemData {
     /* ObjectId: Refernce of BaseData */
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     id: string;
-    @property({ type: 'number', required: false, default: 0 })
+    @property({type: 'number', required: false, default: 0})
     children?: number;
   }
 
   @model()
   export class AttachmentItem {
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     id: string;
-    @property({ required: true })
+    @property({required: true})
     created: COMMON_MODELS.ModifyStamp;
     @property()
     deleted?: COMMON_MODELS.ModifyStamp;
@@ -138,26 +138,26 @@ export namespace PROFILE_DTO {
 
   @model()
   export class AttachmentItemInfo {
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     id: string;
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     name: string;
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     filename: string;
-    @property({ type: 'number', required: true })
+    @property({type: 'number', required: true})
     size: number;
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     url: string;
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     preview: string;
-    @property({ required: true })
+    @property({required: true})
     created: COMMON_MODELS.ModifyStamp;
   }
   export type AttachmentItemsInfo = Record<string, AttachmentItemInfo>;
 
   @model()
   export class IdCertResponseDTO {
-    @property({ type: 'string' })
+    @property({type: 'string'})
     id: string;
     @property()
     personal: PersonalData;
@@ -188,14 +188,14 @@ export namespace PROFILE_DTO {
       },
     })
     items: PROFILE_ENUM.EnumFileTokenRefs[];
-    @property({ type: 'string', required: true })
+    @property({type: 'string', required: true})
     user_id: string;
-    @property({ required: true })
+    @property({required: true})
     updated: COMMON_MODELS.ModifyStamp;
-    @property({ type: 'number', required: true })
+    @property({type: 'number', required: true})
     status: COMMON_ENUMS.EnumStatus;
 
-    @property({ type: 'string', required: false, default: undefined })
+    @property({type: 'string', required: false, default: undefined})
     description?: string;
 
     @property({

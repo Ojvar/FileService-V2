@@ -1,28 +1,12 @@
-import {FileServiceApplication} from '../..';
-import {
-  createRestAppClient,
-  givenHttpServerConfig,
-  Client,
-} from '@loopback/testlab';
+import {Client, createRestAppClient} from '@loopback/testlab';
+import {FileServiceApplication} from '../../application';
+import {getApplicationConfig} from '../..';
 
 export async function setupApplication(): Promise<AppWithClient> {
-  const restConfig = givenHttpServerConfig({
-    // Customize the server configuration here.
-    // Empty values (undefined, '') will be ignored by the helper.
-    //
-    // host: process.env.HOST,
-    // port: +process.env.PORT,
-  });
-
-  const app = new FileServiceApplication({
-    rest: restConfig,
-  });
-
+  const app = new FileServiceApplication(getApplicationConfig('.env.test'));
   await app.boot();
   await app.start();
-
   const client = createRestAppClient(app);
-
   return {app, client};
 }
 

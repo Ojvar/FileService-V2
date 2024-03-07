@@ -1,4 +1,4 @@
-import { Request } from '@loopback/rest';
+import {Request} from '@loopback/rest';
 
 export function getServerUrl(req: Request, serverUrl: string): string {
   const proto = req.header('x-forwarded-proto') ?? 'http';

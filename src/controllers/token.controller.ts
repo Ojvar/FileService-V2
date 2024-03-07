@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { config, inject, intercept } from '@loopback/core';
-import { repository } from '@loopback/repository';
+import {config, inject, intercept} from '@loopback/core';
+import {repository} from '@loopback/repository';
 import {
   del,
   HttpErrors,
@@ -12,18 +12,15 @@ import {
   response,
   RestBindings,
 } from '@loopback/rest';
-import { Keycloak } from 'keycloak-connect';
-// import debugFactory from 'debug';
-import { RabbitmqBindings, RabbitmqProducer } from '../loopback-rabbitmq/src';
-import { v4 as uuidV4 } from 'uuid';
-import { protect } from '../interceptors';
-import { FileService } from '../keys';
-import { EnumRequestTokenStatus, RequestToken } from '../models';
-import { FileRepository } from '../repositories';
-import { RedisService } from '../services';
-import { BaseController } from './base.controller';
-
-// const trace = debugFactory('FileService:TokenController');
+import {Keycloak} from 'keycloak-connect';
+import {RabbitmqBindings, RabbitmqProducer} from '../loopback-rabbitmq/src';
+import {v4 as uuidV4} from 'uuid';
+import {protect} from '../interceptors';
+import {FileService} from '../keys';
+import {EnumRequestTokenStatus, RequestToken} from '../models';
+import {FileRepository} from '../repositories';
+import {RedisService} from '../services';
+import {BaseController} from './base.controller';
 
 export class TokenController extends BaseController {
   constructor(
@@ -39,7 +36,7 @@ export class TokenController extends BaseController {
 
   @intercept(protect('realm:no-body'))
   @post('/token')
-  @response(200, { content: { 'text/plain': { schema: { type: 'string' } } } })
+  @response(200, {content: {'text/plain': {schema: {type: 'string'}}}})
   async requestToken(
     @requestBody({
       content: {
@@ -48,8 +45,8 @@ export class TokenController extends BaseController {
             type: 'object',
             required: ['ref', 'files'],
             properties: {
-              ref: { type: 'string' },
-              allowedFiles: { type: 'array', items: { type: 'string' } },
+              ref: {type: 'string'},
+              allowedFiles: {type: 'array', items: {type: 'string'}},
             },
           },
         },
@@ -80,7 +77,7 @@ export class TokenController extends BaseController {
         FileService.RmqExchanges.FILE_SERVICE.name,
         FileService.RmqQueues.FILE_REQUEST.routeKey,
         requestData.key,
-        { headers: { 'x-delay': this.configs.requestExpireMiliSeconds } },
+        {headers: {'x-delay': this.configs.requestExpireMiliSeconds}},
       );
 
       return requestData.key;
@@ -105,7 +102,7 @@ export class TokenController extends BaseController {
   ) {
     /* Get request data from redis */
     const reuqestStr = await this.redis.client.GET(token);
-    const requestData = RequestToken.toJSON(reuqestStr);
+    const requestData = RequestToken.toJSON(reuqestStr ?? '{}');
     if (
       requestData.status !== EnumRequestTokenStatus.NONE ||
       requestData.ref !== ref
@@ -119,7 +116,7 @@ export class TokenController extends BaseController {
       for (const key of keys) {
         try {
           const file = requestData.uploaded_files[key];
-          if (!!file.id) {
+          if (file.id) {
             continue;
           }
 
@@ -128,7 +125,7 @@ export class TokenController extends BaseController {
             original_name: file.originalname,
             mimetype: file.mimetype,
             size: file.size,
-            uploaded: { at: requestData.created_at, by: requestData.user_id },
+            uploaded: {at: requestData.created_at, by: requestData.user_id},
           });
 
           requestData.uploaded_files[key].id = savedFile.getId();
@@ -151,8 +148,8 @@ export class TokenController extends BaseController {
     @param.path.string('ref') ref: string,
   ) {
     /* Get request data from redis */
-    let reuqestStr = await this.redis.client.GET(token);
-    const requestData = RequestToken.toJSON(reuqestStr);
+    const reuqestStr = await this.redis.client.GET(token);
+    const requestData = RequestToken.toJSON(reuqestStr ?? '{}');
     if (
       requestData.status !== EnumRequestTokenStatus.NONE ||
       requestData.ref !== ref
@@ -174,7 +171,7 @@ export class TokenController extends BaseController {
   ): Promise<RequestToken> {
     if (!requestData) {
       const reqStr = await this.redis.client.GET(token);
-      requestData = RequestToken.toJSON(reqStr);
+      requestData = RequestToken.toJSON(reqStr ?? '{}');
       if (requestData.status !== EnumRequestTokenStatus.NONE) {
         throw new HttpErrors.UnprocessableEntity();
       }

@@ -1,19 +1,18 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import { inject } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { unlink } from 'fs';
-import { resolve } from 'path';
-import { FileService } from '../keys';
-import { EnumRequestTokenStatus, RequestToken } from '../models';
-import { FileRepository } from '../repositories';
-import { RedisService } from '../services';
-import { rabbitConsume } from '../loopback-rabbitmq/src';
+import {inject} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {unlink} from 'fs';
+import {resolve} from 'path';
+import {FileService} from '../keys';
+import {EnumRequestTokenStatus, RequestToken} from '../models';
+import {FileRepository} from '../repositories';
+import {RedisService} from '../services';
+import {rabbitConsume} from '../loopback-rabbitmq/src';
 
 export class FileRequestConsumer {
   constructor(
     @inject(FileService.REDIS_SERVICE) private redis: RedisService,
     @repository(FileRepository) private fileRepository: FileRepository,
-  ) { }
+  ) {}
 
   @rabbitConsume({
     exchange: FileService.RmqExchanges.FILE_SERVICE.name,
@@ -23,7 +22,7 @@ export class FileRequestConsumer {
   async handle(message: string) {
     try {
       const request = await this.redis.client.GETDEL(message);
-      const requestData = RequestToken.toJSON(request);
+      const requestData = RequestToken.toJSON(request ?? '{}');
 
       /* Delete file, if request was not commited */
       if (
@@ -42,7 +41,7 @@ export class FileRequestConsumer {
 
   async cleanDatabase(requestData: RequestToken) {
     const fileIds = Object.values(requestData.uploaded_files).map(x => x.id);
-    return this.fileRepository.deleteAll({ id: { inq: fileIds } });
+    return this.fileRepository.deleteAll({id: {inq: fileIds}});
   }
 
   private async cleanStorage(requestData: RequestToken) {

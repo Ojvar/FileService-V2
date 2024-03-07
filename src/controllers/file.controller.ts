@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { inject, intercept } from '@loopback/core';
-import { repository } from '@loopback/repository';
+import {inject, intercept} from '@loopback/core';
+import {repository} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -13,21 +13,21 @@ import {
   ResponseObject,
   RestBindings,
 } from '@loopback/rest';
-import { protect } from '../interceptors';
-import { FileService } from '../keys';
-import { EnumRequestTokenStatus, File, FileData, RequestToken } from '../models';
-import { FileRepository } from '../repositories';
-import { RedisService } from '../services';
-import { FILE_DTO } from '../dto';
-import { SECURITY_ENUM } from '../enum';
-import { getServerUrl } from '../helpers';
+import {protect} from '../interceptors';
+import {FileService} from '../keys';
+import {EnumRequestTokenStatus, File, FileData, RequestToken} from '../models';
+import {FileRepository} from '../repositories';
+import {RedisService} from '../services';
+import {FILE_DTO} from '../dto';
+import {SECURITY_ENUM} from '../enum';
+import {getServerUrl} from '../helpers';
 
 type FilesListResult = Record<string, FILE_DTO.FileItemDTO>;
 
 const FileResponseContent: ResponseObject = {
   content: {
     'application/json': {
-      schema: { type: 'array', items: getModelSchemaRef(FILE_DTO.FileItemDTO) },
+      schema: {type: 'array', items: getModelSchemaRef(FILE_DTO.FileItemDTO)},
     },
   },
   description: '',
@@ -35,7 +35,7 @@ const FileResponseContent: ResponseObject = {
 
 @intercept(protect(SECURITY_ENUM.EnumRoles.NO_BODY))
 export class FileController {
-  constructor(@inject(FileService.REDIS_SERVICE) private redis: RedisService) { }
+  constructor(@inject(FileService.REDIS_SERVICE) private redis: RedisService) {}
 
   @get('/files-list/{ref}')
   @response(200, FileResponseContent)
@@ -44,7 +44,7 @@ export class FileController {
     @param.path.string('ref') ref: string,
   ): Promise<Record<string, FileData>> {
     const request = await this.redis.client.GET(fileToken);
-    const fileRequest = RequestToken.toJSON(request);
+    const fileRequest = RequestToken.toJSON(request ?? '{}');
 
     if (
       fileRequest?.status === EnumRequestTokenStatus.DISMISSED ||
@@ -74,7 +74,7 @@ export class FileController {
         'application/json': {
           schema: {
             type: 'array',
-            items: { type: 'string' },
+            items: {type: 'string'},
             description: "File's id list",
           },
         },
@@ -90,7 +90,7 @@ export class FileController {
     }
 
     const filesList = await filesRepo.find({
-      where: { id: { inq: files }, deleted: { eq: undefined } },
+      where: {id: {inq: files}, deleted: {eq: undefined}},
     });
 
     serverUrl = getServerUrl(req, serverUrl);

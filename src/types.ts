@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-export type { RequestHandler as FileUploadHandler } from 'express-serve-static-core';
+export type {RequestHandler as FileUploadHandler} from 'express-serve-static-core';
 
 export namespace COMMON_TYPES {
   export type RMQExchanges = Record<
@@ -8,7 +8,7 @@ export namespace COMMON_TYPES {
       type: 'topic' | 'fanout' | 'direct' | string;
       name: string;
       route_key: string;
-      queues: Record<string, { name: string; route_key: string }>;
+      queues: Record<string, {name: string; route_key: string}>;
     }
   >;
 

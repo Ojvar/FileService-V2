@@ -1,15 +1,19 @@
-import { BindingKey } from '@loopback/core';
-import { TokenController } from './controllers';
-import { FileServiceDataSource, FileStorageDataSourceConfig, KeycloakDataSource } from './datasources';
+import {BindingKey} from '@loopback/core';
+import {TokenController} from './controllers';
+import {
+  FileServiceDataSource,
+  FileStorageDataSourceConfig,
+  KeycloakDataSource,
+} from './datasources';
 import {
   KeycloakConnectService,
   KeycloakWrapperService,
   RedisService,
   UploadRequestHandlerService,
-  FileService as BaseFileService
+  FileService as BaseFileService,
 } from './services';
-import { COMMON_TYPES } from './types';
-import { Keycloak } from 'keycloak-connect';
+import {COMMON_TYPES} from './types';
+import {Keycloak} from 'keycloak-connect';
 
 export namespace FileService {
   export const HEADER_TOKEN = 'file-token';
@@ -38,12 +42,12 @@ export namespace FileService {
   );
 
   export const RmqExchanges = {
-    FILE_SERVICE: { name: 'file-service', type: 'x-delayed-message' },
+    FILE_SERVICE: {name: 'file-service', type: 'x-delayed-message'},
   };
   export const RmqQueues = {
-    FILE_REQUEST: { name: 'file-upload-request', routeKey: 'file-request' },
+    FILE_REQUEST: {name: 'file-upload-request', routeKey: 'file-request'},
   };
-  export enum RmqRouteKeys { }
+  export enum RmqRouteKeys {}
 }
 
 export namespace COMMON_KEYS {

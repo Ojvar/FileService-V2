@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 declare type JWT_USER = {
   [key: string]: unknown;
 };

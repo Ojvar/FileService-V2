@@ -1,15 +1,14 @@
-import { BootMixin } from '@loopback/boot';
-import { ApplicationConfig } from '@loopback/core';
-import { RepositoryMixin } from '@loopback/repository';
-import { RestApplication } from '@loopback/rest';
+import {BootMixin} from '@loopback/boot';
+import {ApplicationConfig} from '@loopback/core';
+import {RepositoryMixin} from '@loopback/repository';
+import {RestApplication} from '@loopback/rest';
 import {
   RestExplorerBindings,
   RestExplorerComponent,
 } from '@loopback/rest-explorer';
-import { ServiceMixin } from '@loopback/service-proxy';
+import {ServiceMixin} from '@loopback/service-proxy';
 import {
   ConsumersBooter,
-  MessageHandlerErrorBehavior,
   QueueComponent,
   RabbitmqBindings,
   RabbitmqComponent,
@@ -17,21 +16,31 @@ import {
 } from './loopback-rabbitmq/src';
 import multer from 'multer';
 import path from 'path';
-import { RedisClientOptions } from 'redis';
-import { v4 as uuidV4 } from 'uuid';
-import { KCAuthenticationComponent, KeycloakComponent } from './components';
-import { RequestConfig } from './controllers';
-import { MulterInterceptor } from './interceptors';
-import { COMMON_KEYS, FileService } from './keys';
-import { MySequence } from './sequence';
-import { COMMON_TYPES } from './types';
+import {RedisClientOptions} from 'redis';
+import {v4 as uuidV4} from 'uuid';
+import {KCAuthenticationComponent, KeycloakComponent} from './components';
+import {RequestConfig} from './controllers';
+import {MulterInterceptor} from './interceptors';
+import {COMMON_KEYS, FileService} from './keys';
+import {MySequence} from './sequence';
+import {COMMON_TYPES} from './types';
+import {FileStorageDataSourceConfig} from './datasources';
 
-export { ApplicationConfig };
+export {ApplicationConfig};
+
+export type FileServiceApplicationConfig = ApplicationConfig & {
+  rabbitmqConfig: RabbitmqComponentConfig;
+  fileServiceDsConfig: FileStorageDataSourceConfig;
+  redisConfig: RedisClientOptions;
+  keycloakBaseURL: string;
+  maxFileSize: number;
+  rmqConfig: RequestConfig;
+};
 
 export class FileServiceApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
 ) {
-  constructor(options: ApplicationConfig = {}) {
+  constructor(options: FileServiceApplicationConfig) {
     super(options);
 
     // Set up the custom sequence
@@ -41,17 +50,8 @@ export class FileServiceApplication extends BootMixin(
     this.static('/', path.join(__dirname, '../public'));
 
     // Customize @loopback/rest-explorer configuration here
-    if (false === options.rest.apiExplorer.disabled) {
-      this.configure(RestExplorerBindings.COMPONENT).to({ path: '/explorer' });
-      this.component(RestExplorerComponent);
-    }
-
-    /* Config */
-    this.onStart(async () => {
-      this.bind(FileService.SERVER_URL).to(String(this.restServer.url));
-      await this.connectToRedis();
-    });
-    this.configApp(options);
+    this.configure(RestExplorerBindings.COMPONENT).to({path: '/explorer'});
+    this.component(RestExplorerComponent);
 
     this.projectRoot = __dirname;
     // Customize @loopback/boot Booter Conventions here
@@ -68,23 +68,31 @@ export class FileServiceApplication extends BootMixin(
         nested: true,
       },
     };
+
+    this.configApp(options);
   }
 
-  configApp(options: ApplicationConfig) {
+  configApp(options: FileServiceApplicationConfig) {
+    /* Config */
+    this.onStart(async () => {
+      this.bind(FileService.SERVER_URL).to(String(this.restServer.url));
+      await this.connectToRedis();
+    });
+
     this.component(KCAuthenticationComponent);
     this.component(KeycloakComponent);
 
     /* Setup keycloak wrapper */
     this.bind<Partial<COMMON_TYPES.RestDataSourceConfig>>(
       COMMON_KEYS.KEYCLOAK_DATASOURCE_CONFIG,
-    ).to({ baseURL: process.env.KEYCLOAK_URL });
+    ).to({baseURL: options.keycloakBaseURL});
 
     /* Set upload destination folder */
     const destination =
       options.destination ?? path.join(__dirname, '../.sandbox');
     this.bind(FileService.STORAGE_DIRECTORY).to(destination);
     const multerOptions: multer.Options = {
-      limits: { fileSize: +(process.env.MAX_FILE_SIZE ?? '2097152') },
+      limits: {fileSize: options.maxFileSize},
       storage: multer.diskStorage({
         destination,
         filename: (req, file, cb) => cb(null, uuidV4()),
@@ -92,54 +100,22 @@ export class FileServiceApplication extends BootMixin(
     };
     this.configure(MulterInterceptor.BINDING_KEY).to(multerOptions);
 
-    /* RMQ Config */
-    this.configure<RequestConfig>(FileService.TOKEN_CONTROLLER).to({
-      requestExpireMiliSeconds: +process.env.REQUEST_EXPIRE_MILISECONDS,
-    });
-
     /* Redis Config */
-    this.configure<RedisClientOptions>(FileService.REDIS_SERVICE).to({
-      url: process.env.REDIS_URL,
-      username: process.env.REDIS_USERNAME,
-      password: process.env.REDIS_PASSWORD,
-      name: process.env.REDIS_NAME,
-      database: process.env.REDIS_DATABASE,
-      socket: {
-        port: +(process.env.REDIS_SOCKET_PORT ?? '6379'),
-        host: process.env.REDIS_SOCKET_HOST ?? 'localhost',
-      },
-    });
+    this.configure(FileService.REDIS_SERVICE).to(options.redisConfig);
 
     /* MongoDB */
-    this.bind(FileService.DS_CONFIG_FILE_STORAGE).to({
-      url: process.env.FILE_STORAGE_DB_URL,
-      host: process.env.FILE_STORAGE_DB_HOST,
-      port: +process.env.FILE_STORAGE_DB_PORT,
-      user: process.env.FILE_STORAGE_DB_USER,
-      password: process.env.FILE_STORAGE_DB_PASSWORD,
-      database: process.env.FILE_STORAGE_DB_DATABASE,
-    });
+    this.bind(FileService.DS_CONFIG_FILE_STORAGE).to(
+      options.fileServiceDsConfig,
+    );
 
     /* RabbitMQ */
-    this.configure<RabbitmqComponentConfig>(RabbitmqBindings.COMPONENT).to({
-      options: {
-        protocol: process.env.RABBITMQ_PROTOCOL,
-        hostname: process.env.RABBITMQ_HOST,
-        port: +(process.env.RABBITMQ_PORT ?? '5672'),
-        username: process.env.RABBITMQ_USER,
-        password: process.env.RABBITMQ_PASS,
-        vhost: process.env.RABBITMQ_VHOST,
-      },
-      producer: { idleTimeoutMillis: 10000 },
-      consumer: { retries: 0, interval: 1500 },
-      defaultConsumerErrorBehavior: MessageHandlerErrorBehavior.ACK,
-      prefetchCount: 1,
-      // exchanges: [AuthKeys.RmqExchanges.QENG_AUTH],
-    });
-
+    this.configure(RabbitmqBindings.COMPONENT).to(options.rabbitmqConfig);
     this.component(RabbitmqComponent);
     this.booters(ConsumersBooter);
     this.component(QueueComponent);
+
+    /* RMQ Config */
+    this.configure(FileService.TOKEN_CONTROLLER).to(options.rmqConfig);
   }
 
   async connectToRedis() {

@@ -5,11 +5,11 @@ import {
   injectable,
   Provider,
 } from '@loopback/core';
-import { getService } from '@loopback/service-proxy';
-import { FileServiceDataSource } from '../datasources';
-import { PROFILE_DTO } from '../dto';
-import { COMMON_KEYS } from '../keys';
-import { FILE_SERVICE_TYPES } from '../types';
+import {getService} from '@loopback/service-proxy';
+import {FileServiceDataSource} from '../datasources';
+import {PROFILE_DTO} from '../dto';
+import {COMMON_KEYS} from '../keys';
+import {FILE_SERVICE_TYPES} from '../types';
 
 export interface FileService {
   getToken(token: string, ref: string, allowedFiles: string[]): Promise<string>;
@@ -38,7 +38,7 @@ export class FileServiceProvider implements Provider<FileService> {
     // FileService must match the name property in the datasource json file
     @inject(COMMON_KEYS.FILE_SERVICE_DATASOURCE)
     protected dataSource: FileServiceDataSource = new FileServiceDataSource(),
-  ) { }
+  ) {}
 
   value(): Promise<FileService> {
     return getService(this.dataSource);

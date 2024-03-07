@@ -6,12 +6,12 @@ import {
   lifeCycleObserver,
 } from '@loopback/core';
 import JsonWebToken from 'jsonwebtoken';
-import { CertResponseDTO } from '../dto/keycloak.dto';
-import { COMMON_KEYS } from '../keys';
-import { Keycloak } from './keycloak.service';
+import {CertResponseDTO} from '../dto/keycloak.dto';
+import {COMMON_KEYS} from '../keys';
+import {Keycloak} from './keycloak.service';
 
 @lifeCycleObserver('services')
-@injectable({ scope: BindingScope.APPLICATION })
+@injectable({scope: BindingScope.APPLICATION})
 export class KeycloakWrapperService implements LifeCycleObserver {
   private _cert: CertResponseDTO;
   private _x5c: string;
@@ -22,7 +22,7 @@ export class KeycloakWrapperService implements LifeCycleObserver {
 
   async updatePublicToken() {
     this._cert = await this.keycloak.certs();
-    const { keys } = this._cert;
+    const {keys} = this._cert;
     this._x5c = keys[0].x5c[0];
   }
 
@@ -36,5 +36,5 @@ export class KeycloakWrapperService implements LifeCycleObserver {
 
   constructor(
     @inject(COMMON_KEYS.KEYCLOAK_SERVICE) private keycloak: Keycloak,
-  ) { }
+  ) {}
 }

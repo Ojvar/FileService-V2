@@ -1,11 +1,15 @@
-import {ApplicationConfig} from '@loopback/core';
-import {FileServiceApplication} from './application';
+import {
+  FileServiceApplication,
+  FileServiceApplicationConfig,
+  getApplicationConfig,
+} from './index';
 
 /**
  * Export the OpenAPI spec from the application
  */
 async function exportOpenApiSpec(): Promise<void> {
-  const config: ApplicationConfig = {
+  const config: FileServiceApplicationConfig = {
+    ...getApplicationConfig(),
     rest: {
       port: +(process.env.PORT ?? 3000),
       host: process.env.HOST ?? 'localhost',

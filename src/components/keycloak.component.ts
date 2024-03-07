@@ -7,8 +7,8 @@ import {
   createServiceBinding,
   inject,
 } from '@loopback/core';
-import { KeycloakDataSource } from '../datasources';
-import { COMMON_KEYS } from '../keys';
+import {KeycloakDataSource} from '../datasources';
+import {COMMON_KEYS} from '../keys';
 import {
   KeycloakConnectServiceProvider,
   KeycloakProvider,

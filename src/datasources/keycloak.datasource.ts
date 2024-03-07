@@ -1,21 +1,18 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import { inject, LifeCycleObserver, lifeCycleObserver } from '@loopback/core';
-import { juggler } from '@loopback/repository';
-import debugFactory from 'debug';
-import { COMMON_KEYS } from '../keys';
-import { COMMON_TYPES } from '../types';
-const trace = debugFactory('Common:Keycloak.DataSource');
+import {inject, LifeCycleObserver, lifeCycleObserver} from '@loopback/core';
+import {juggler} from '@loopback/repository';
+import {COMMON_KEYS} from '../keys';
+import {COMMON_TYPES} from '../types';
 
 const config = {
   name: 'Keycloak',
   connector: 'rest',
-  baseURL: '',
+  // baseURL: '',
   crud: false,
 };
 
 const getConfig = (
-  data: COMMON_TYPES.RestDataSourceConfig,
-): COMMON_TYPES.RestDataSourceConfig => {
+  data: Partial<COMMON_TYPES.RestDataSourceConfig>,
+): object => {
   return {
     ...data,
     operations: [
@@ -24,7 +21,7 @@ const getConfig = (
           method: 'GET',
           url: `${data.baseURL}/auth/realms/qeng/protocol/openid-connect/certs`,
         },
-        functions: { certs: [] },
+        functions: {certs: []},
       },
     ],
   };
@@ -37,7 +34,8 @@ const getConfig = (
 @lifeCycleObserver('datasource')
 export class KeycloakDataSource
   extends juggler.DataSource
-  implements LifeCycleObserver {
+  implements LifeCycleObserver
+{
   static dataSourceName = 'Keycloak';
   static readonly defaultConfig = config;
 
@@ -45,10 +43,8 @@ export class KeycloakDataSource
     @inject(COMMON_KEYS.KEYCLOAK_DATASOURCE_CONFIG, {
       optional: true,
     })
-    dsConfig: Partial<COMMON_TYPES.RestDataSourceConfig> = config,
+    dsConfig: object = config,
   ) {
-    dsConfig = getConfig(Object.assign(config, dsConfig));
-    trace(dsConfig, config);
-    super(dsConfig);
+    super(getConfig({...dsConfig, ...config}));
   }
 }

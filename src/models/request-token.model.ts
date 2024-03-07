@@ -10,15 +10,24 @@ export enum EnumRequestTokenStatus {
 
 @model()
 export class FileData extends Model {
-  @property({type: 'string', required: false}) id?: string;
-  @property({type: 'string'}) fieldname: string;
-  @property({type: 'string'}) originalname: string;
-  @property({type: 'string'}) encoding: string;
-  @property({type: 'string'}) mimetype: string;
-  @property({type: 'number'}) size: number;
-  @property({type: 'string'}) destination: string;
-  @property({type: 'string'}) filename: string;
-  @property({type: 'string'}) path: string;
+  @property({type: 'string', required: false})
+  id?: string;
+  @property({type: 'string'})
+  fieldname: string;
+  @property({type: 'string'})
+  originalname: string;
+  @property({type: 'string'})
+  encoding: string;
+  @property({type: 'string'})
+  mimetype: string;
+  @property({type: 'number'})
+  size: number;
+  @property({type: 'string'})
+  destination: string;
+  @property({type: 'string'})
+  filename: string;
+  @property({type: 'string'})
+  path: string;
 
   constructor(data: Partial<FileData>) {
     super(data);
@@ -31,11 +40,16 @@ export class FileData extends Model {
 
 @model()
 export class RequestToken extends Model {
-  @property({type: 'string', required: true}) key: string;
-  @property({type: 'string', required: true}) ref: string;
-  @property({type: 'string', required: true}) user_id: string;
-  @property({type: 'date', required: true}) created_at: Date;
-  @property({type: 'array', required: true}) allowed_files: string[];
+  @property({type: 'string', required: true})
+  key: string;
+  @property({type: 'string', required: true})
+  ref: string;
+  @property({type: 'string', required: true})
+  user_id: string;
+  @property({type: 'date', required: true})
+  created_at: Date;
+  @property({type: 'array', required: true})
+  allowed_files: string[];
   @property({type: 'number', default: EnumRequestTokenStatus.NONE})
   status: EnumRequestTokenStatus;
   @property({
@@ -54,8 +68,8 @@ export class RequestToken extends Model {
     return JSON.stringify(this.toJSON());
   }
 
-  static toJSON(dataStr: string | null | undefined): RequestToken {
-    return new RequestToken(JSON.parse(dataStr || '{}'));
+  static toJSON(dataStr: string = '{}'): RequestToken {
+    return new RequestToken(JSON.parse(dataStr));
   }
 }
 

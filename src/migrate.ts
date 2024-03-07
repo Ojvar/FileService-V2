@@ -1,10 +1,10 @@
-import {FileServiceApplication} from './application';
+import {FileServiceApplication, getApplicationConfig} from '.';
 
 export async function migrate(args: string[]) {
   const existingSchema = args.includes('--rebuild') ? 'drop' : 'alter';
   console.log('Migrating schemas (%s existing schema)', existingSchema);
 
-  const app = new FileServiceApplication();
+  const app = new FileServiceApplication(getApplicationConfig());
   await app.boot();
   await app.migrateSchema({existingSchema});
 
