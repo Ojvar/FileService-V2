@@ -9,25 +9,28 @@ import {
 import {FileHandlerInterceptor} from '../interceptors';
 import {SECURITY_ROLES} from '../keys';
 import {
-  KEYCLOAK_SECURITY_SERVICE,
   KeycloakSecurity,
+  KeycloakSecurityProvider,
   protect,
 } from '../lib-keycloak/src';
 import {UploadedFile} from '../models';
-import {FILE_MANAGER_SERVICE, FileManagerService} from '../services';
+import {FileManagerService} from '../services';
+
+const BASE_ADDR = '/files';
+const tags = ['Files.Upload'];
 
 export class FileUploaderController {
   constructor(
-    @inject(FILE_MANAGER_SERVICE)
+    @inject(FileManagerService.BINDING_KEY)
     private fileManagerService: FileManagerService,
-    @inject(KEYCLOAK_SECURITY_SERVICE)
+    @inject(KeycloakSecurityProvider.BINDING_KEY)
     private keycloakSecurity: KeycloakSecurity,
   ) {}
 
   @intercept(protect(SECURITY_ROLES.NO_BODY))
   @intercept(FileHandlerInterceptor.BINDING_KEY)
-  @post('/files/{field}', {
-    tags: ['files'],
+  @post(`${BASE_ADDR}/{field}`, {
+    tags,
     description: 'Upload files',
     summary: 'Upload files',
     responses: {

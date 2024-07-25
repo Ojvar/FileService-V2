@@ -6,19 +6,15 @@ import {
   inject,
 } from '@loopback/core';
 import {RestApplication} from '@loopback/rest';
-import {
-  PruneExpiredCredentialsCronJob,
-  PRUNE_EXPIRED_CREDENTIALS_CRONJOB,
-} from '../crontabs';
+import {PruneExpiredCredentialsCronJob} from '../crontabs';
 
 export class CronJobComponent implements Component {
   constructor(
-    @inject(CoreBindings.APPLICATION_INSTANCE)
-    private application: RestApplication,
+    @inject(CoreBindings.APPLICATION_INSTANCE) private app: RestApplication,
   ) {
-    application.add(
+    app.add(
       createBindingFromClass(PruneExpiredCredentialsCronJob, {
-        [ContextTags.KEY]: PRUNE_EXPIRED_CREDENTIALS_CRONJOB,
+        [ContextTags.KEY]: PruneExpiredCredentialsCronJob.BINDING_KEY,
       }),
     );
   }

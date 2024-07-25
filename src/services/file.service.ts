@@ -1,34 +1,27 @@
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {renameSync, unlinkSync} from 'fs';
 import {resolve} from 'path';
-import {STORAGE_DIRECTORY} from '../interceptors';
+import {FileHandlerInterceptor} from '../interceptors';
 
-export const FILE_SERVICE = BindingKey.create<FileService>(
-  'services.FileService',
-);
-
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({scope: BindingScope.APPLICATION})
 export class FileService {
+  static BINDING_KEY = BindingKey.create<FileService>(
+    `services.${FileService.name}`,
+  );
+
+  constructor(
+    @inject(FileHandlerInterceptor.STORAGE_DIRECTORY)
+    private storagePath: string,
+  ) {}
+
   moveFile(source: string, target: string) {
     const sourcePath = resolve(this.storagePath, source);
     const targetPath = resolve(this.storagePath, target);
-    try {
-      renameSync(sourcePath, targetPath);
-    } catch (err) {
-      /* TODO: LOG ERROR */
-      console.error(err);
-    }
+    renameSync(sourcePath, targetPath);
   }
 
   deleteFile(id: string) {
     const filePath = resolve(this.storagePath, id);
-    try {
-      unlinkSync(filePath);
-    } catch (err) {
-      /* TODO: LOG ERROR */
-      console.error(err);
-    }
+    unlinkSync(filePath);
   }
-
-  constructor(@inject(STORAGE_DIRECTORY) private storagePath: string) {}
 }

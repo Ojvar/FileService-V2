@@ -10,3 +10,6 @@
 [submodule "src/lib-sentry"]
 	path = src/lib-sentry
 	url = git@gitlab.qeng.ir:qeng/libraries/lib-sentry.git
+[submodule "src/loopback-rabbitmq"]
+	path = src/loopback-rabbitmq
+	url = git@gitlab.qeng.ir:qeng/libraries/loopback-rabbitmq.git

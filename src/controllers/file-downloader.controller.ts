@@ -3,20 +3,24 @@ import {repository} from '@loopback/repository';
 import {get, param, Response, RestBindings} from '@loopback/rest';
 import {resolve} from 'path';
 import {OBJECT_ID_PATTERN} from '../dto';
-import {STORAGE_DIRECTORY} from '../interceptors';
 import {FileRepository} from '../repositories';
-import {FILE_MANAGER_SERVICE, FileManagerService} from '../services';
+import {FileManagerService} from '../services';
+import {FileHandlerInterceptor} from '../interceptors';
+
+const BASE_ADDR = '/files';
+const tags = ['Files.Download'];
 
 export class FileDownloaderController {
   constructor(
-    @inject(STORAGE_DIRECTORY) private storageDirectory: string,
-    @inject(FILE_MANAGER_SERVICE)
+    @inject(FileHandlerInterceptor.STORAGE_DIRECTORY)
+    private storageDirectory: string,
+    @inject(FileManagerService.BINDING_KEY)
     private fileManagerService: FileManagerService,
     @repository(FileRepository) private fileRepository: FileRepository,
   ) {}
 
-  @get('/files/download/{id}', {
-    tags: ['files'],
+  @get(`${BASE_ADDR}/download/{id}`, {
+    tags,
     description: 'Download file by file-id',
     summary: 'Download file by file-id',
     responses: {

@@ -2,18 +2,25 @@ declare namespace NodeJS {
   interface ProcessEnv {
     NODE_ENV: 'development' | 'production';
 
-    REDIS_HOST: string;
-    REDIS_PORT: string;
-    REDIS_DB: string;
+    REDIS_URL: string;
     REDIS_USERNAME: string;
     REDIS_PASSWORD: string;
+    REDIS_NAME: string;
+    REDIS_DATABASE: string;
+    REDIS_SOCKET_HOST: string;
+    REDIS_SOCKET_PORT: string;
+    REDIS_EXPIER_TIME: string;
 
-    MONGO_HOST: string;
-    MONGO_PORT: number;
-    MONGO_DB: string;
-    MONGO_URL: string;
-    MONGO_USERNAME: string;
-    MONGO_PASSWORD: string;
+    SENTRY_DSN: string;
+    SENTRY_SAMPLE_RATE: string;
+    SENTRY_PROFILES_SAMPLE_RATE: string;
+
+    FILE_STORAGE_DB_URL: string;
+    FILE_STORAGE_DB_HOST: string;
+    FILE_STORAGE_DB_PORT: string;
+    FILE_STORAGE_DB_USER: string;
+    FILE_STORAGE_DB_PASSWORD: string;
+    FILE_STORAGE_DB_DATABASE: string;
 
     FILE_STORAGE: string;
     MAX_FILE_SIZE: string;

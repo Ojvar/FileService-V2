@@ -1,10 +1,5 @@
-// Copyright Ojvar <MOjvar.AmirHossein@Gmail.com> 2022. All Rights Reserved.
-// Node module: file-service
-// This file is licensed under the MIT License.
-// License text available at https://opensource.org/licenses/MIT
-
 import {inject} from '@loopback/core';
-import {get, Request, ResponseObject, RestBindings} from '@loopback/rest';
+import {get, Request, ResponseObject, RestBindings, tags} from '@loopback/rest';
 
 /**
  * OpenAPI response for ping()
@@ -41,15 +36,15 @@ export class PingController {
   constructor(@inject(RestBindings.Http.REQUEST) private req: Request) {}
 
   // Map to `GET /ping`
+  @tags('Ping')
   @get('/ping', {
     description: 'Ping route',
-    tags: ['ping'],
     responses: {200: PING_RESPONSE},
   })
   ping(): object {
     // Reply with a greeting, the current time, the url, and request headers
     return {
-      greeting: 'Hello from LoopBack',
+      greeting: 'Hello from QENG',
       date: new Date(),
       url: this.req.url,
       headers: Object.assign({}, this.req.headers),

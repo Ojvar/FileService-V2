@@ -13,6 +13,7 @@ import multer from 'multer';
 
 @injectable({tags: {key: FileHandlerInterceptor.BINDING_KEY}})
 export class FileHandlerInterceptor implements Provider<Interceptor> {
+  static STORAGE_DIRECTORY = BindingKey.create<string>('storage.directory');
   static readonly BINDING_KEY = `interceptors.${FileHandlerInterceptor.name}`;
 
   value() {
@@ -26,7 +27,7 @@ export class FileHandlerInterceptor implements Provider<Interceptor> {
     const request = invocationCtx.getSync(RestBindings.Http.REQUEST);
     const response = invocationCtx.getSync(RestBindings.Http.RESPONSE);
 
-    return new Promise((resolve, reject) =>
+    return new Promise(resolve =>
       multer(this.options).single('file')(request, response, () =>
         resolve(next()),
       ),
@@ -39,5 +40,3 @@ export class FileHandlerInterceptor implements Provider<Interceptor> {
     }
   }
 }
-
-export const STORAGE_DIRECTORY = BindingKey.create<string>('storage.directory');

@@ -5,20 +5,20 @@ import {HttpErrors} from '@loopback/rest';
 import {ObjectID} from 'bson';
 import {Credential, File, FileMeta, FileMetaArray, Files} from '../models';
 import {FileRepository} from '../repositories';
-import {FileService, FILE_SERVICE} from './file.service';
+import {FileService} from './file.service';
 
-export const FILE_STORAGE_SERVICE = BindingKey.create<FileStorageService>(
-  'services.FileStorageService',
-);
-
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({scope: BindingScope.REQUEST})
 export class FileStorageService {
+  static BINDING_KEY = BindingKey.create<FileStorageService>(
+    `services.${FileStorageService.name}`,
+  );
+
   constructor(
-    @inject(FILE_SERVICE) private fileService: FileService,
+    @inject(FileService.BINDING_KEY) private fileService: FileService,
     @repository(FileRepository) private fileRepository: FileRepository,
   ) {}
 
-  async filterByMetadataAdvance(metadata: FileMetaArray): Promise<Files> {
+  filterByMetadataAdvance(metadata: FileMetaArray): Promise<Files> {
     const filter: object[] = [];
     metadata.forEach(metaItem => {
       const metaItemFilter = Object.keys(metaItem).reduce(
@@ -33,7 +33,7 @@ export class FileStorageService {
     return this.fileRepository.find({where: {or: filter}});
   }
 
-  async filterByMetadata(metadata: FileMeta): Promise<Files> {
+  filterByMetadata(metadata: FileMeta): Promise<Files> {
     const filter = Object.keys(metadata).reduce(
       (result: Record<string, unknown>, key: string) => {
         result[`meta.${key}`] = metadata[key];
@@ -44,11 +44,11 @@ export class FileStorageService {
     return this.fileRepository.find({where: filter});
   }
 
-  async updateFile(file: File): Promise<void> {
+  updateFile(file: File): Promise<void> {
     return this.fileRepository.update(file);
   }
 
-  async removeFile(id: string): Promise<void> {
+  removeFile(id: string): Promise<void> {
     return this.fileRepository.deleteById(id);
   }
 
