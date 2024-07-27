@@ -1,13 +1,13 @@
 import {BindingKey, BindingScope, ContextTags, inject} from '@loopback/core';
 import {CronJob, cronJob} from '@loopback/cron';
-import {FileManagerService, FileStorageService} from '../services';
+import {FileManagerService} from '../services';
 
 export type PruneExpiredCredentialsCronJobConfig = {
   cronTime: string;
 };
 
 @cronJob({
-  scope: BindingScope.REQUEST,
+  scope: BindingScope.APPLICATION,
   tags: {
     [ContextTags.KEY]: 'PruneExpiredCredentialsCronJob',
     [ContextTags.NAMESPACE]: 'cronjobs',
@@ -25,7 +25,7 @@ export class PruneExpiredCredentialsCronJob extends CronJob {
   constructor(
     @inject(PruneExpiredCredentialsCronJob.CONFIG_BINDING_KEY)
     configs: PruneExpiredCredentialsCronJobConfig,
-    @inject(FileStorageService.BINDING_KEY)
+    @inject(FileManagerService.BINDING_KEY)
     fileManagerService: FileManagerService,
   ) {
     super({
