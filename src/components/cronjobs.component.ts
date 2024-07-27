@@ -12,7 +12,7 @@ export class CronJobComponent implements Component {
   constructor(
     @inject(CoreBindings.APPLICATION_INSTANCE) private app: RestApplication,
   ) {
-    app.add(
+    this.app.add(
       createBindingFromClass(PruneExpiredCredentialsCronJob, {
         [ContextTags.KEY]: PruneExpiredCredentialsCronJob.BINDING_KEY,
       }),

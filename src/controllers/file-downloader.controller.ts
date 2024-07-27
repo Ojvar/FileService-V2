@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {get, param, Response, RestBindings} from '@loopback/rest';
@@ -47,13 +48,18 @@ export class FileDownloaderController {
     })
     accessToken = '',
   ): Promise<Response> {
-    const fileInfo = await this.fileRepository.getFileInfo(id);
-    if (fileInfo.is_private) {
+    const {
+      id: fileId,
+      mime,
+      original_name,
+      is_private,
+    } = await this.fileRepository.getFileInfo(id);
+    if (is_private) {
       await this.fileManagerService.checkAccessToken(id, accessToken);
     }
-    const filepath = resolve(this.storageDirectory, fileInfo.getId());
-    response.setHeader('Content-type', fileInfo.mime);
-    response.download(filepath, fileInfo.original_name);
+    const filepath = resolve(this.storageDirectory, fileId!);
+    response.setHeader('Content-type', mime);
+    response.download(filepath, original_name);
     return response;
   }
 }
