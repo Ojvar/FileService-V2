@@ -12,23 +12,26 @@ import {FILE_MANAGER_SERVICE_DTO} from '../dto';
 import {SECURITY_ROLES} from '../keys';
 import {
   KeycloakSecurity,
-  KEYCLOAK_SECURITY_SERVICE,
+  KeycloakSecurityProvider,
   protect,
 } from '../lib-keycloak/src';
 import {Credential, UploadedFile} from '../models';
-import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
+import {FileManagerService} from '../services';
+
+const BASE_ADDR = '/token';
+const tags = ['File.Credential'];
 
 @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
 export class CertificateController {
   constructor(
-    @inject(FILE_MANAGER_SERVICE)
+    @inject(FileManagerService.BINDING_KEY)
     private fileManagerService: FileManagerService,
-    @inject(KEYCLOAK_SECURITY_SERVICE)
-    private keycloakSecurityService: KeycloakSecurity,
+    @inject(KeycloakSecurityProvider.BINDING_KEY)
+    private keycloakSecurity: KeycloakSecurity,
   ) {}
 
-  @patch('/token/{token}/{file_id}', {
-    tags: ['credential'],
+  @patch(`${BASE_ADDR}/{token}/{file_id}`, {
+    tags,
     description: 'Update uploaded file meta-data',
     summary: 'Update uploaded file meta-data',
     responses: {
@@ -41,12 +44,15 @@ export class CertificateController {
     },
   })
   async updateMetadata(
-    @requestBody({description: 'Data for add/remove fields', required: true})
+    @requestBody({
+      description: 'Data for add/remove fields',
+      required: true,
+    })
     body: FILE_MANAGER_SERVICE_DTO.UpdateMetadataDTO,
     @param.path.string('token') token: string,
     @param.path.string('file_id') fileId: string,
   ): Promise<UploadedFile> {
-    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurity.getUserInfo();
     return this.fileManagerService.certificateEditMetadata(
       token,
       userId,
@@ -55,56 +61,56 @@ export class CertificateController {
     );
   }
 
-  @get('/token/{user_id}/{token}', {
+  @get(`${BASE_ADDR}/{user_id}/{token}`, {
+    tags,
     description: 'Get credential data',
     summary: 'Get credential data',
-    tags: ['credential'],
     responses: {
       200: {
         description: 'Credential Data',
-        content: {'application/json': {schema: getModelSchemaRef(Credential)}},
+        content: {
+          'application/json': {schema: getModelSchemaRef(Credential)},
+        },
       },
     },
   })
-  async getFilesList(
+  getFilesList(
     @param.path.string('user_id') userId: string,
     @param.path.string('token') token: string,
   ): Promise<Credential> {
-    // const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
     return this.fileManagerService.getCredential(token, userId);
   }
 
-  @del('/token/{token}', {
+  @del(`${BASE_ADDR}/{token}`, {
+    tags,
     description: 'Reject a certificate',
     summary: 'Reject a certificate',
-    tags: ['credential'],
     responses: {204: {description: 'Reject successfully'}},
   })
   async rejectCertificate(
     @param.path.string('token') token: string,
   ): Promise<void> {
-    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurity.getUserInfo();
     await this.fileManagerService.reject(token, userId);
   }
 
-  @post('/token/{user_id}/{token}', {
+  @post(`${BASE_ADDR}/{user_id}/{token}`, {
+    tags,
     description: 'Commit a certificate',
     summary: 'Commit a certificate',
-    tags: ['credential'],
     responses: {204: {description: 'Commit successfully'}},
   })
   async commitCertificate(
     @param.path.string('user_id') userId: string,
     @param.path.string('token') token: string,
   ): Promise<void> {
-    // const { sub: userId } = await this.keycloakSecurityService.getUserInfo();
     await this.fileManagerService.commit(token, userId);
   }
 
-  @post('/token', {
+  @post(`${BASE_ADDR}`, {
+    tags,
     description: 'Generate a file upload certificate and return file-token',
     summary: 'Generate a new file-upload certificate',
-    tags: ['credential'],
     responses: {
       200: {
         description: 'Genereated certificate',
@@ -118,7 +124,7 @@ export class CertificateController {
       },
     },
   })
-  async generateCertificate(
+  generateCertificate(
     @requestBody() body: FILE_MANAGER_SERVICE_DTO.GetTokenRequestDTO,
   ): Promise<FILE_MANAGER_SERVICE_DTO.GetTokenResponseDTO> {
     return this.fileManagerService.generateCertificate(body);

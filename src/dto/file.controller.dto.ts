@@ -5,8 +5,12 @@ import {FileAccessToken} from '../services';
 
 @model()
 export class FileInfoDTO extends Model {
-  @property({type: 'string', jsonSchema: {description: 'File id'}}) id: string;
-  @property({type: 'string', jsonSchema: {description: 'Original filename'}})
+  @property({type: 'string', jsonSchema: {description: 'File id'}})
+  id: string;
+  @property({
+    type: 'string',
+    jsonSchema: {description: 'Original filename'},
+  })
   original_name: string;
   @property({type: 'string', jsonSchema: {description: 'File id'}})
   field_name: string;
@@ -18,7 +22,10 @@ export class FileInfoDTO extends Model {
   uploaded_at: Date;
   @property({type: 'date', jsonSchema: {description: 'Uploaded by'}})
   uploaded_by: string;
-  @property({type: 'string', jsonSchema: {description: 'File access token'}})
+  @property({
+    type: 'string',
+    jsonSchema: {description: 'File access token'},
+  })
   access_token: string;
   @property({
     type: 'object',

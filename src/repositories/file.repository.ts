@@ -2,7 +2,7 @@
 import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
-import {FileStorageDataSource, FILE_STORAGE_DATASOURCE} from '../datasources';
+import {FileStorageDataSource} from '../datasources';
 import {EnumFileStatus, File, FileRelations, UploadedFile} from '../models';
 
 export class FileRepository extends DefaultCrudRepository<
@@ -10,6 +10,13 @@ export class FileRepository extends DefaultCrudRepository<
   typeof File.prototype.id,
   FileRelations
 > {
+  constructor(
+    @inject(FileStorageDataSource.BINDING_KEY)
+    dataSource: FileStorageDataSource,
+  ) {
+    super(File, dataSource);
+  }
+
   async getFileInfo(id: string): Promise<File> {
     const file = await this.findById(id);
     if (!file?.isValid()) {
@@ -34,7 +41,7 @@ export class FileRepository extends DefaultCrudRepository<
     });
   }
 
-  async addFile(file: UploadedFile, userId: string): Promise<File> {
+  addFile(file: UploadedFile, userId: string): Promise<File> {
     const newFile = this.fileFromUploadedFile(file, userId);
     return this.create(newFile);
   }
@@ -43,11 +50,5 @@ export class FileRepository extends DefaultCrudRepository<
     const newFile = this.fileFromUploadedFile(file, userId);
     await this.updateById(newFile.id, newFile);
     return newFile;
-  }
-
-  constructor(
-    @inject(FILE_STORAGE_DATASOURCE) dataSource: FileStorageDataSource,
-  ) {
-    super(File, dataSource);
   }
 }

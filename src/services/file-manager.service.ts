@@ -3,7 +3,7 @@ import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {HttpErrors, Model, Request} from '@loopback/rest';
 import {ObjectId} from 'bson';
 import {FILE_MANAGER_SERVICE_DTO, FileInfoDTO, FileInfoListDTO} from '../dto';
-import {REDIS_SERVICE, RedisService} from '../lib-redis/src';
+import {RedisService} from '../lib-redis/src';
 import {
   Credential,
   File,
@@ -12,17 +12,10 @@ import {
   Files,
   UploadedFile,
 } from '../models';
-import {
-  CREDENTIAL_MANAGER_SERVICE,
-  CredentialManagerService,
-} from './credential.manager.service';
-import {FILE_STORAGE_SERVICE, FileStorageService} from './file-storage.service';
-import {FILE_SERVICE, FileService} from './file.service';
+import {CredentialManagerService} from './credential.manager.service';
+import {FileStorageService} from './file-storage.service';
+import {FileService} from './file.service';
 import {AnyObject} from '@loopback/repository';
-
-export const FILE_MANAGER_SERVICE = BindingKey.create<FileManagerService>(
-  'services.FileManagerService',
-);
 
 export class FileAccessToken extends Model {
   token: string;
@@ -53,12 +46,16 @@ export class FileAccessToken extends Model {
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
+  static BINDING_KEY = BindingKey.create<FileManagerService>(
+    `services.${FileManagerService.name}`,
+  );
+
   constructor(
-    @inject(REDIS_SERVICE) private redisService: RedisService,
-    @inject(FILE_SERVICE) private fileService: FileService,
-    @inject(FILE_STORAGE_SERVICE)
+    @inject(RedisService.BINDING_KEY) private redisService: RedisService,
+    @inject(FileService.BINDING_KEY) private fileService: FileService,
+    @inject(FileStorageService.BINDING_KEY)
     private fileStorageService: FileStorageService,
-    @inject(CREDENTIAL_MANAGER_SERVICE)
+    @inject(CredentialManagerService.BINDING_KEY)
     private credentialManagerService: CredentialManagerService,
   ) {}
 
@@ -69,7 +66,6 @@ export class FileManagerService {
   ): Promise<void> {
     /* Load token */
     const credential = await this.getCredential(body.token_id, userId);
-    console.log(credential);
 
     /* Load file */
     const file = await this.fileStorageService.getFileById(fileId);
@@ -223,7 +219,7 @@ export class FileManagerService {
     return files;
   }
 
-  async pruneExpiredCredentials() {
+  pruneExpiredCredentials() {
     return this.credentialManagerService.pruneLastExpiredEntry();
   }
 
@@ -261,7 +257,7 @@ export class FileManagerService {
     }
 
     /* Replace new-file with old-file */
-    await this.deleteFileIfAlreadyUploaded(credential, uploadedFile);
+    this.deleteFileIfAlreadyUploaded(credential, uploadedFile);
     credential.addOrReplaceUploadedItem(uploadedFile);
 
     /* Update redis */
@@ -270,13 +266,13 @@ export class FileManagerService {
     return uploadedFile;
   }
 
-  async deleteFileIfAlreadyUploaded(
+  deleteFileIfAlreadyUploaded(
     credential: Credential,
     uploadedFile: UploadedFile,
-  ): Promise<void> {
+  ): void {
     const oldUploadedFile = credential.getUploadedFile(uploadedFile);
     if (oldUploadedFile) {
-      return this.fileService.deleteFile(oldUploadedFile.id);
+      this.fileService.deleteFile(oldUploadedFile.id);
     }
   }
 
@@ -286,7 +282,7 @@ export class FileManagerService {
   }
 
   /* Save credential into redis database */
-  async storeCredential(credential: Credential): Promise<string | null> {
+  storeCredential(credential: Credential): Promise<string | null> {
     return this.redisService.client.SET(
       credential.getKey(),
       credential.toJsonString(),

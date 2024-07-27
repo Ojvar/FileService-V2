@@ -1,27 +1,29 @@
 import {
   BindingKey,
   inject,
-  lifeCycleObserver,
   LifeCycleObserver,
+  lifeCycleObserver,
 } from '@loopback/core';
 import {juggler} from '@loopback/repository';
 
-export const FILE_STORAGE_DATASOURCE_CONFIG = BindingKey.create<object>(
-  'datasources.config.FileStorage',
-);
-export const FILE_STORAGE_DATASOURCE = BindingKey.create<FileStorageDataSource>(
-  'datasources.FileStorage',
-);
+export type FileStorageDataSourceConfig = {
+  url: string;
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  database: string;
+};
 
 const config = {
   name: 'FileStorage',
   connector: 'mongodb',
-  url: '',
-  host: 'localhost',
-  port: 27017,
-  user: '',
-  password: '',
-  database: 'file_storage_db',
+  // url: '',
+  // host: 'localhost',
+  // port: 27017,
+  // user: '',
+  // password: '',
+  // database: 'file_storage_db',
   useNewUrlParser: true,
 };
 
@@ -33,15 +35,30 @@ export class FileStorageDataSource
   static dataSourceName = 'FileStorage';
   static readonly defaultConfig = config;
 
+  static BINDING_KEY = BindingKey.create<FileStorageDataSource>(
+    `datasources.${FileStorageDataSource.dataSourceName}`,
+  );
+  static CONFIG_BINDING_KEY = BindingKey.create<FileStorageDataSourceConfig>(
+    `datasources.config.${FileStorageDataSource.dataSourceName}`,
+  );
+
   constructor(
-    @inject(FILE_STORAGE_DATASOURCE_CONFIG, {optional: true})
-    dsConfig: object = config,
+    @inject(FileStorageDataSource.CONFIG_BINDING_KEY, {
+      optional: true,
+    })
+    dsConfig?: FileStorageDataSource | undefined,
   ) {
-    Object.assign(dsConfig, {
-      name: config.name,
-      connector: config.connector,
-      useNewUrlParser: config.useNewUrlParser,
+    super({...(dsConfig ?? {}), ...config});
+    this.once('connected', () => {
+      this.autoupdate()
+        .then(() =>
+          console.log(`${FileStorageDataSource.dataSourceName} AutoUpdated`),
+        )
+        .catch(console.error);
     });
-    super(dsConfig);
+    this.on('error', error => {
+      console.error(error);
+      process.exit(-1);
+    });
   }
 }

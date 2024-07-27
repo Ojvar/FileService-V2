@@ -1,16 +1,15 @@
-// Copyright Ojvar <MOjvar.AmirHossein@Gmail.com> 2022. All Rights Reserved.
-// Node module: file-service
-// This file is licensed under the MIT License.
-// License text available at https://opensource.org/licenses/MIT
-
-import {ApplicationConfig} from '@loopback/core';
-import {FileServiceApplication} from './application';
+import {
+  FileServiceApplication,
+  FileServiceApplicationConfig,
+} from './application';
+import {getApplicationConfig} from './index';
 
 /**
  * Export the OpenAPI spec from the application
  */
 async function exportOpenApiSpec(): Promise<void> {
-  const config: ApplicationConfig = {
+  const config: FileServiceApplicationConfig = {
+    ...getApplicationConfig(),
     rest: {
       port: +(process.env.PORT ?? 3000),
       host: process.env.HOST ?? 'localhost',

@@ -1,22 +1,27 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {get, param, Response, RestBindings} from '@loopback/rest';
 import {resolve} from 'path';
 import {OBJECT_ID_PATTERN} from '../dto';
-import {STORAGE_DIRECTORY} from '../interceptors';
 import {FileRepository} from '../repositories';
-import {FILE_MANAGER_SERVICE, FileManagerService} from '../services';
+import {FileManagerService} from '../services';
+import {FileHandlerInterceptor} from '../interceptors';
+
+const BASE_ADDR = '/files';
+const tags = ['Files.Download'];
 
 export class FileDownloaderController {
   constructor(
-    @inject(STORAGE_DIRECTORY) private storageDirectory: string,
-    @inject(FILE_MANAGER_SERVICE)
+    @inject(FileHandlerInterceptor.STORAGE_DIRECTORY)
+    private storageDirectory: string,
+    @inject(FileManagerService.BINDING_KEY)
     private fileManagerService: FileManagerService,
     @repository(FileRepository) private fileRepository: FileRepository,
   ) {}
 
-  @get('/files/download/{id}', {
-    tags: ['files'],
+  @get(`${BASE_ADDR}/download/{id}`, {
+    tags,
     description: 'Download file by file-id',
     summary: 'Download file by file-id',
     responses: {
@@ -43,13 +48,18 @@ export class FileDownloaderController {
     })
     accessToken = '',
   ): Promise<Response> {
-    const fileInfo = await this.fileRepository.getFileInfo(id);
-    if (fileInfo.is_private) {
+    const {
+      id: fileId,
+      mime,
+      original_name,
+      is_private,
+    } = await this.fileRepository.getFileInfo(id);
+    if (is_private) {
       await this.fileManagerService.checkAccessToken(id, accessToken);
     }
-    const filepath = resolve(this.storageDirectory, fileInfo.getId());
-    response.setHeader('Content-type', fileInfo.mime);
-    response.download(filepath, fileInfo.original_name);
+    const filepath = resolve(this.storageDirectory, fileId!);
+    response.setHeader('Content-type', mime);
+    response.download(filepath, original_name);
     return response;
   }
 }

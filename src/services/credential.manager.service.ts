@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {ObjectId} from 'bson';
-import {REDIS_SERVICE, RedisService} from '../lib-redis/src';
+import {RedisService} from '../lib-redis/src';
 import {Credential} from '../models';
 import {StringArray} from '../types';
-import {FILE_SERVICE, FileService} from './file.service';
+import {FileService} from './file.service';
 
 export type CredentialManagerServiceConfig = {
   bucketInterval: number;
@@ -15,37 +15,36 @@ export type CredentialEntry = {
   token: ObjectId;
 };
 export type CredentialEntries = CredentialEntry[];
-export const CREDENTIAL_MANAGER_SERVICE =
-  BindingKey.create<CredentialManagerService>(
-    'services.CredentialManagerService',
+
+@injectable({scope: BindingScope.REQUEST})
+export class CredentialManagerService {
+  static BINDING_KEY = BindingKey.create<CredentialManagerService>(
+    `services.${CredentialManagerService.name}`,
   );
-export const CREDENTIAL_MANAGER_SERVICE_CONFIG =
-  BindingKey.create<CredentialManagerServiceConfig>(
-    'services.config.CredentialManagerService',
+  static CONFIG_BINDING_KEY = BindingKey.create<CredentialManagerServiceConfig>(
+    `services.config.${CredentialManagerService.name}`,
   );
 
-@injectable({scope: BindingScope.TRANSIENT})
-export class CredentialManagerService {
   constructor(
-    @inject(REDIS_SERVICE) private redisService: RedisService,
-    @inject(FILE_SERVICE) private fileService: FileService,
-    @inject(CREDENTIAL_MANAGER_SERVICE_CONFIG)
+    @inject(RedisService.BINDING_KEY) private redisService: RedisService,
+    @inject(FileService.BINDING_KEY) private fileService: FileService,
+    @inject(CredentialManagerService.CONFIG_BINDING_KEY)
     private configs: CredentialManagerServiceConfig,
   ) {}
 
-  async pruneLastExpiredEntry() {
+  pruneLastExpiredEntry() {
     const lastEntryTime = +new Date() - this.configs.bucketInterval;
     return this.removeEntry(lastEntryTime);
   }
 
-  async addCredential(credential: Credential) {
+  addCredential(credential: Credential) {
     return this.redisService.client.SADD(
       this.getRedisKey(credential.expire_time),
       credential.getKey(),
     );
   }
 
-  async removeCredential(credential: Credential, removeFiles: boolean) {
+  removeCredential(credential: Credential, removeFiles: boolean) {
     const redisKey = credential.getKey();
     return Promise.all([
       this.redisService.client.SREM(
@@ -72,12 +71,12 @@ export class CredentialManagerService {
         continue;
       }
       const credential = new Credential(JSON.parse(rawCredential));
-      await this.removeFilesFromDisk(credential);
+      this.removeFilesFromDisk(credential);
       await this.redisService.client.DEL(token);
     }
   }
 
-  async removeFilesFromDisk(credential: Credential) {
+  removeFilesFromDisk(credential: Credential) {
     for (const file of credential.uploaded_files) {
       this.fileService.deleteFile(file.id);
     }
@@ -91,9 +90,7 @@ export class CredentialManagerService {
     }
   }
 
-  async getCredentialsList(
-    entryIndex: number,
-  ): Promise<StringArray | undefined> {
+  getCredentialsList(entryIndex: number): Promise<StringArray | undefined> {
     const redisKey = this.getRedisKey(entryIndex);
     return this.redisService.client.SMEMBERS(redisKey);
   }

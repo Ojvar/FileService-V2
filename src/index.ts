@@ -1,13 +1,17 @@
 import dotenv from 'dotenv';
-dotenv.config();
-
-import {readFileSync} from 'fs';
-import path from 'path';
-import {ApplicationConfig, FileServiceApplication} from './application';
+import path, {resolve} from 'path';
+import fs from 'fs';
+import {
+  FileServiceApplication,
+  FileServiceApplicationConfig,
+} from './application';
+import {nodeProfilingIntegration} from '@sentry/profiling-node';
+import {generateUniqueId} from '@loopback/core';
+import {diskStorage} from 'multer';
 
 export * from './application';
 
-export async function main(options: ApplicationConfig = {}) {
+export async function main(options: FileServiceApplicationConfig) {
   const app = new FileServiceApplication(options);
   await app.boot();
   await app.start();
@@ -19,21 +23,35 @@ export async function main(options: ApplicationConfig = {}) {
   return app;
 }
 
-if (require.main === module) {
+export function loadEnv(envFile: string) {
+  envFile = path.resolve(envFile);
+  if (!fs.existsSync(envFile)) {
+    console.warn('Env file not found! ', envFile);
+    return;
+  }
+  const envData = dotenv.parse(fs.readFileSync(envFile));
+  for (const data in envData) {
+    process.env[data] = envData[data];
+  }
+}
+
+export function getApplicationConfig(
+  envFile?: string,
+): FileServiceApplicationConfig {
   const isProduction = process.env.NODE_ENV === 'production';
   const isHttp = 'false' === (process.env.HTTPS ?? 'false').toLowerCase();
 
+  loadEnv(envFile ?? (isProduction ? '.env' : '.env.dev'));
+  const destination = resolve(process.env.FILE_STORAGE || resolve('.sandbox'));
+
   // Run the application
-  const config = {
-    basePath: process.env.BASE_PATH,
+  return {
     rest: {
       expressSettings: {
         'x-powered-by': !isProduction,
         env: process.env.NODE_ENV ?? 'production',
       },
-      apiExplorer: {
-        disabled: isProduction,
-      },
+      apiExplorer: {disabled: isProduction},
       port: +(process.env.PORT ?? 3000),
       host: process.env.HOST,
       basePath: process.env.BASE_PATH ?? '',
@@ -42,25 +60,69 @@ if (require.main === module) {
         : {
             protocol: 'https',
             key: process.env.SSL_KEY
-              ? readFileSync(path.resolve(process.env.SSL_KEY))
+              ? fs.readFileSync(path.resolve(process.env.SSL_KEY))
               : '',
             cert: process.env.SSL_CERT
-              ? readFileSync(path.resolve(process.env.SSL_CERT))
+              ? fs.readFileSync(path.resolve(process.env.SSL_CERT))
               : '',
           }),
-      // The `gracePeriodForClose` provides a graceful close for http/https
-      // servers with keep-alive clients. The default value is `Infinity`
-      // (don't force-close). If you want to immediately destroy all sockets
-      // upon stop, set its value to `0`.
-      // See https://www.npmjs.com/package/stoppable
-      gracePeriodForClose: 5000, // 5 seconds
-      openApiSpec: {
-        // useful when used with OpenAPI-to-GraphQL to locate your application
-        setServersFromRequest: true,
+      gracePeriodForClose: 5000,
+      openApiSpec: {setServersFromRequest: true},
+    },
+    sentryConfig: {
+      integrations: [nodeProfilingIntegration()],
+      dsn: process.env.SENTRY_DSN,
+      sampleRate: parseFloat(process.env.SENTRY_SAMPLE_RATE ?? '0.3'),
+      profilesSampleRate: parseFloat(
+        process.env.SENTRY_PROFILES_SAMPLE_RATE ?? '0.3',
+      ),
+    },
+    keycloak: {
+      allowedList: process.env.KEYCLOAK_ALLOWED_LIST ?? '',
+      rejectedList: process.env.KEYCLOAK_REJECTED_LIST ?? '',
+    },
+    engineerProfileDsConfig: {
+      baseURL: process.env.ENGINEER_PROFILE_SERVICE_URL,
+    },
+    redisConfig: {
+      url: process.env.REDIS_URL,
+      username: process.env.REDIS_USERNAME,
+      password: process.env.REDIS_PASSWORD,
+      name: process.env.REDIS_NAME,
+      database: +process.env.REDIS_DATABASE,
+      socket: {
+        port: +(process.env.REDIS_SOCKET_PORT ?? '6379'),
+        host: process.env.REDIS_SOCKET_HOST ?? 'localhost',
       },
     },
+    fileStorageDbConfig: {
+      user: process.env.FILE_STORAGE_DB_USER,
+      url: process.env.FILE_STORAGE_DB_URL,
+      host: process.env.FILE_STORAGE_DB_HOST,
+      port: +process.env.FILE_STORAGE_DB_PORT,
+      password: process.env.FILE_STORAGE_DB_PASSWORD,
+      database: process.env.FILE_STORAGE_DB_DATABASE,
+    },
+    credentialManagerConfig: {
+      bucketInterval: +process.env.CREDENTIAL_MANAGER_BUCKET_INTERVAL * 1000,
+    },
+    pruneExpiredCredentialsCronJobConfig: {
+      cronTime: process.env.PRUNE_EXPIRED_CREDENTIALS_CRON_TIME,
+    },
+    storageDirectory: destination,
+    multerOptions: {
+      limits: {fileSize: +(process.env.MAX_FILE_SIZE ?? '2097152')},
+      storage: diskStorage({
+        destination,
+        filename: (_req: unknown, _file: unknown, cb: Function) =>
+          cb(null, generateUniqueId()),
+      }),
+    },
   };
-  main(config).catch(err => {
+}
+
+if (require.main === module) {
+  main(getApplicationConfig()).catch(err => {
     console.error('Cannot start the application.', err);
     process.exit(1);
   });

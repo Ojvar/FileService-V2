@@ -9,31 +9,34 @@ import {
   requestBody,
 } from '@loopback/rest';
 import {
+  FILE_MANAGER_SERVICE_DTO,
   FileInfoDTO,
   FileInfoListDTO,
-  FILE_MANAGER_SERVICE_DTO,
   OBJECT_ID_PATTERN,
 } from '../dto';
 import {SECURITY_ROLES} from '../keys';
 import {
   KeycloakSecurity,
-  KEYCLOAK_SECURITY_SERVICE,
+  KeycloakSecurityProvider,
   protect,
 } from '../lib-keycloak/src';
 import {FileMeta, FileMetaArray} from '../models';
-import {FileManagerService, FILE_MANAGER_SERVICE} from '../services';
+import {FileManagerService} from '../services';
+
+const BASE_ADDR = '/files';
+const tags = ['Files'];
 
 export class FileController {
   constructor(
-    @inject(FILE_MANAGER_SERVICE)
+    @inject(FileManagerService.BINDING_KEY)
     private fileManagerService: FileManagerService,
-    @inject(KEYCLOAK_SECURITY_SERVICE)
-    private keycloakSecurityService: KeycloakSecurity,
+    @inject(KeycloakSecurityProvider.BINDING_KEY)
+    private keycloakSecurity: KeycloakSecurity,
   ) {}
 
   @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
-  @patch('/files/edit/{file_id}', {
-    tags: ['files'],
+  @patch(`${BASE_ADDR}/edit/{file_id}`, {
+    tags,
     description: 'Edit a file',
     summary: 'Edit a file',
     responses: {204: {description: 'File edited successfully'}},
@@ -46,13 +49,13 @@ export class FileController {
     fileId: string,
     @requestBody() body: FILE_MANAGER_SERVICE_DTO.EditFileDTO,
   ): Promise<void> {
-    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurity.getUserInfo();
     return this.fileManagerService.editFile(fileId, body, userId);
   }
 
   @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
-  @post('/files/find-by-meta-array', {
-    tags: ['files'],
+  @post(`${BASE_ADDR}/find-by-meta-array`, {
+    tags,
     description: 'Advance search in files metadata',
     summary: 'Advance search in metadata',
     responses: {
@@ -76,13 +79,13 @@ export class FileController {
     })
     body: FileMetaArray,
   ): Promise<FileInfoListDTO> {
-    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurity.getUserInfo();
     return this.fileManagerService.searchMetadataAdvance(body, userId);
   }
 
   @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
-  @post('/files/find-by-meta', {
-    tags: ['files'],
+  @post(`${BASE_ADDR}/find-by-meta`, {
+    tags,
     description: 'Search in files metadata',
     summary: 'Search in metadata',
     responses: {
@@ -99,18 +102,18 @@ export class FileController {
   async searchMetadata(
     @requestBody() body: FileMeta,
   ): Promise<FileInfoListDTO> {
-    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurity.getUserInfo();
     return this.fileManagerService.searchMetadata(body, userId);
   }
 
   @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
-  @patch('/files/{id}', {
-    tags: ['files'],
+  @patch(`${BASE_ADDR}/{id}`, {
+    tags,
     description: 'Update metadata of a file',
     summary: 'Update file metadata',
     responses: {204: {description: 'Metadata updated successfully'}},
   })
-  async updateMetadata(
+  updateMetadata(
     @param.path.string('id', {
       description: 'File id',
       schema: {pattern: OBJECT_ID_PATTERN},
@@ -122,8 +125,8 @@ export class FileController {
   }
 
   @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
-  @get('/files/generate-file-access-token/{id}', {
-    tags: ['files'],
+  @get(`${BASE_ADDR}/generate-file-access-token/{id}`, {
+    tags,
     description: 'Generate FileAccessToken for a specified user',
     summary: 'Generate FileAccessToken',
     responses: {
@@ -140,7 +143,7 @@ export class FileController {
     })
     id: string,
   ): Promise<string> {
-    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurity.getUserInfo();
     const accessToken = await this.fileManagerService.generateAccessToken(
       id,
       userId,
@@ -149,8 +152,8 @@ export class FileController {
   }
 
   @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
-  @post('/files/info', {
-    tags: ['files'],
+  @post(`{BASE_ADDR}/info`, {
+    tags,
     summary: 'Get file(s) information',
     description: 'Get file(s) information',
     responses: {
@@ -167,18 +170,18 @@ export class FileController {
   async getFilesInfo(
     @requestBody() body: FILE_MANAGER_SERVICE_DTO.GetFileInfoRequestDTO,
   ): Promise<FileInfoListDTO> {
-    const {sub: userId} = await this.keycloakSecurityService.getUserInfo();
+    const {sub: userId} = await this.keycloakSecurity.getUserInfo();
     return this.fileManagerService.getFilesInfo(body.files, userId);
   }
 
   @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
-  @del('/files/{id}', {
-    tags: ['files'],
+  @del(`${BASE_ADDR}/{id}`, {
+    tags,
     description: 'Remove file',
     summary: 'Remove file',
     responses: {204: {description: 'Remove successfully'}},
   })
-  async removeFile(@param.path.string('id') id: string): Promise<void> {
+  removeFile(@param.path.string('id') id: string): Promise<void> {
     return this.fileManagerService.removeFile(id);
   }
 }
