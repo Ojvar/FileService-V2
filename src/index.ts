@@ -96,12 +96,12 @@ export function getApplicationConfig(
       },
     },
     fileStorageDbConfig: {
-      user: process.env.FILE_STORAGE_DB_USER,
       url: process.env.FILE_STORAGE_DB_URL,
+      database: process.env.FILE_STORAGE_DB_DB,
+      user: process.env.FILE_STORAGE_DB_USERNAME,
+      password: process.env.FILE_STORAGE_DB_PASSWORD,
       host: process.env.FILE_STORAGE_DB_HOST,
       port: +process.env.FILE_STORAGE_DB_PORT,
-      password: process.env.FILE_STORAGE_DB_PASSWORD,
-      database: process.env.FILE_STORAGE_DB_DATABASE,
     },
     credentialManagerConfig: {
       bucketInterval: +process.env.CREDENTIAL_MANAGER_BUCKET_INTERVAL * 1000,

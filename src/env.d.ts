@@ -18,9 +18,9 @@ declare namespace NodeJS {
     FILE_STORAGE_DB_URL: string;
     FILE_STORAGE_DB_HOST: string;
     FILE_STORAGE_DB_PORT: string;
-    FILE_STORAGE_DB_USER: string;
+    FILE_STORAGE_DB_DB: string;
+    FILE_STORAGE_DB_USERNAME: string;
     FILE_STORAGE_DB_PASSWORD: string;
-    FILE_STORAGE_DB_DATABASE: string;
 
     FILE_STORAGE: string;
     MAX_FILE_SIZE: string;
