@@ -152,7 +152,7 @@ export class FileController {
   }
 
   @intercept(protect(SECURITY_ROLES.FILE_SERVICE_MANAGER))
-  @post(`{BASE_ADDR}/info`, {
+  @post(`${BASE_ADDR}/info`, {
     tags,
     summary: 'Get file(s) information',
     description: 'Get file(s) information',
