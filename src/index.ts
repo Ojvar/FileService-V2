@@ -6,8 +6,8 @@ import {
   FileServiceApplicationConfig,
 } from './application';
 import {nodeProfilingIntegration} from '@sentry/profiling-node';
-import {generateUniqueId} from '@loopback/core';
 import {diskStorage} from 'multer';
+import {ObjectId} from 'bson';
 
 export * from './application';
 
@@ -115,7 +115,7 @@ export function getApplicationConfig(
       storage: diskStorage({
         destination,
         filename: (_req: unknown, _file: unknown, cb: Function) =>
-          cb(null, generateUniqueId()),
+          cb(null, new ObjectId().toHexString()),
       }),
     },
   };
