@@ -110,6 +110,9 @@ export function getApplicationConfig(
       cronTime: process.env.PRUNE_EXPIRED_CREDENTIALS_CRON_TIME,
     },
     storageDirectory: destination,
+    fileManagerServiceConfig: {
+      accessTokenExpireTime: +(process.env.ACCESS_TOKEN_EXPIRE_TIME ?? '300'),
+    },
     multerOptions: {
       limits: {fileSize: +(process.env.MAX_FILE_SIZE ?? '2097152')},
       storage: diskStorage({

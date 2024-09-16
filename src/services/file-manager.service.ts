@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
-import {HttpErrors, Model, Request} from '@loopback/rest';
-import {ObjectId} from 'bson';
+import {HttpErrors, Request} from '@loopback/rest';
 import {FILE_MANAGER_SERVICE_DTO, FileInfoDTO, FileInfoListDTO} from '../dto';
 import {RedisService} from '../lib-redis/src';
 import {
   Credential,
   File,
+  FileAccessToken,
   FileMeta,
   FileMetaArray,
   Files,
@@ -17,40 +17,22 @@ import {FileStorageService} from './file-storage.service';
 import {FileService} from './file.service';
 import {AnyObject} from '@loopback/repository';
 
-export class FileAccessToken extends Model {
-  token: string;
-  user_id: string;
-  file_id: string;
-  expire_time: number;
-
-  static getRedisKey(token: string): string {
-    return `fat_${token}`;
-  }
-
-  get redisKey(): string {
-    return FileAccessToken.getRedisKey(this.token);
-  }
-
-  toJson(): string {
-    return JSON.stringify({
-      file_id: this.file_id,
-      user_id: this.user_id,
-    });
-  }
-
-  constructor(data?: Partial<FileAccessToken>) {
-    super(data);
-    this.token = this.token || new ObjectId().toHexString();
-  }
-}
+export type FileManagerServiceConfig = {
+  accessTokenExpireTime: number;
+};
 
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
   static BINDING_KEY = BindingKey.create<FileManagerService>(
     `services.${FileManagerService.name}`,
   );
+  static CONFIG_BINDING_KEY = BindingKey.create<FileManagerServiceConfig>(
+    `services.config.${FileManagerService.name}`,
+  );
 
   constructor(
+    @inject(FileManagerService.CONFIG_BINDING_KEY)
+    private configs: FileManagerServiceConfig,
     @inject(RedisService.BINDING_KEY) private redisService: RedisService,
     @inject(FileService.BINDING_KEY) private fileService: FileService,
     @inject(FileStorageService.BINDING_KEY)
@@ -132,10 +114,10 @@ export class FileManagerService {
   async generateAccessToken(
     fileId: string,
     userId: string,
-    expireTime = 120,
+    expireTime?: number,
   ): Promise<FileAccessToken> {
     const accessToken = new FileAccessToken({
-      expire_time: expireTime,
+      expire_time: expireTime ?? this.configs.accessTokenExpireTime,
       file_id: fileId,
       user_id: userId,
     });

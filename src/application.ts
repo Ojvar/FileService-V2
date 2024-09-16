@@ -32,6 +32,8 @@ import {
 import {
   CredentialManagerService,
   CredentialManagerServiceConfig,
+  FileManagerService,
+  FileManagerServiceConfig,
 } from './services';
 import {
   PruneExpiredCredentialsCronJob,
@@ -56,6 +58,7 @@ export type FileServiceApplicationConfig = ApplicationConfig & {
   pruneExpiredCredentialsCronJobConfig: PruneExpiredCredentialsCronJobConfig;
   redisConfig: RedisClientOptions;
   multerOptions: MulterOptions;
+  fileManagerServiceConfig: FileManagerServiceConfig;
 };
 
 export class FileServiceApplication extends BootMixin(
@@ -131,6 +134,11 @@ export class FileServiceApplication extends BootMixin(
     this.component(CronJobComponent);
     this.bind(PruneExpiredCredentialsCronJob.CONFIG_BINDING_KEY).to(
       options.pruneExpiredCredentialsCronJobConfig,
+    );
+
+    // File manager
+    this.bind(FileManagerService.CONFIG_BINDING_KEY).to(
+      options.fileManagerServiceConfig,
     );
 
     // configMulter() {

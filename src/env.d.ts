@@ -2,6 +2,8 @@ declare namespace NodeJS {
   interface ProcessEnv {
     NODE_ENV: 'development' | 'production';
 
+    ACCESS_TOKEN_EXPIRE_TIME: string;
+
     REDIS_URL: string;
     REDIS_USERNAME: string;
     REDIS_PASSWORD: string;

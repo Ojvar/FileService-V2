@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {Model, model, property} from '@loopback/repository';
-import {File, FileMeta} from '../models';
-import {FileAccessToken} from '../services';
+import {File, FileAccessToken, FileMeta} from '../models';
 
 @model()
 export class FileInfoDTO extends Model {
