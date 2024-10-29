@@ -4,6 +4,8 @@
 private/ssl/*
 .todo
 .sandbox/
+.env*
+!.env.example
 
 # Logs
 logs

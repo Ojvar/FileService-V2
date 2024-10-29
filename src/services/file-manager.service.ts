@@ -233,6 +233,7 @@ export class FileManagerService {
         (x: AnyObject) => x.field === uploadedFile.fieldname,
       )?.is_private;
       uploadedFile.owner = userId;
+      uploadedFile.meta = JSON.parse(request?.body['meta'] ?? '{}');
     } catch (err) {
       this.fileService.deleteFile(uploadedFile.id);
       throw err;
