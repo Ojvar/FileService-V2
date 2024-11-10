@@ -284,7 +284,10 @@ export class FileManagerService {
 
   /* Get uploaded file */
   getUploadedFile(request: Request, field?: string): UploadedFile {
-    const uploadedFile = request.file;
+    const files = (request.files ?? []) as Express.Multer.File[];
+    const uploadedFile = files.find(
+      f => f.fieldname === 'file' || f.fieldname === field,
+    );
     if (!uploadedFile) {
       throw new HttpErrors.UnprocessableEntity('Empty file');
     }
