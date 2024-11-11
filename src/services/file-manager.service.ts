@@ -289,7 +289,9 @@ export class FileManagerService {
       f => f.fieldname === 'file' || f.fieldname === field,
     );
     if (!uploadedFile) {
-      throw new HttpErrors.UnprocessableEntity('Empty file');
+      throw new HttpErrors.UnprocessableEntity(
+        'Empty file or Invalid file size',
+      );
     }
     return {
       id: uploadedFile.filename,

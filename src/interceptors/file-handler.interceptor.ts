@@ -20,14 +20,18 @@ export class FileHandlerInterceptor implements Provider<Interceptor> {
     return this.intercept.bind(this);
   }
 
-  async intercept(
+  intercept(
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
     const request = invocationCtx.getSync(RestBindings.Http.REQUEST);
     const response = invocationCtx.getSync(RestBindings.Http.RESPONSE);
-    const nextFunc = multer(this.options).any();
-    return nextFunc(request, response, next);
+    const handler = multer(this.options).any();
+    return new Promise((resolve, reject) => {
+      handler(request, response, () =>
+        next().then(resolve).catch(reject),
+      ) as void;
+    });
   }
 
   constructor(@config() private options: multer.Options = {}) {
