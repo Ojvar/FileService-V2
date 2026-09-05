@@ -57,14 +57,14 @@ export function getApplicationConfig(
       ...(isHttp
         ? {}
         : {
-          protocol: 'https',
-          key: process.env.SSL_KEY
-            ? fs.readFileSync(path.resolve(process.env.SSL_KEY))
-            : '',
-          cert: process.env.SSL_CERT
-            ? fs.readFileSync(path.resolve(process.env.SSL_CERT))
-            : '',
-        }),
+            protocol: 'https',
+            key: process.env.SSL_KEY
+              ? fs.readFileSync(path.resolve(process.env.SSL_KEY))
+              : '',
+            cert: process.env.SSL_CERT
+              ? fs.readFileSync(path.resolve(process.env.SSL_CERT))
+              : '',
+          }),
       gracePeriodForClose: 5000,
       openApiSpec: {setServersFromRequest: true},
     },
