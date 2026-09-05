@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {BootMixin} from '@loopback/boot';
 import {ApplicationConfig} from '@loopback/core';
+import {CronComponent} from '@loopback/cron';
 import {RepositoryMixin} from '@loopback/repository';
 import {RestApplication} from '@loopback/rest';
 import {
@@ -8,7 +9,19 @@ import {
   RestExplorerComponent,
 } from '@loopback/rest-explorer';
 import {ServiceMixin} from '@loopback/service-proxy';
+import {Options as MulterOptions} from 'multer';
 import {join} from 'path';
+import {CronJobComponent} from './components';
+import {
+  PruneExpiredCredentialsCronJob,
+  PruneExpiredCredentialsCronJobConfig,
+} from './crontabs';
+import {
+  FileStorageDataSource,
+  FileStorageDataSourceConfig,
+} from './datasources';
+import {FileHandlerInterceptor} from './interceptors';
+import KeycloakJson from './keycloak.json';
 import {
   KCAuthenticationComponent,
   KEYCLOAK_LOCAL_ACL,
@@ -17,13 +30,6 @@ import {
   KeycloakDataSource,
   KeycloakSequence,
 } from './lib-keycloak/src';
-import KeycloakJson from './keycloak.json';
-import {SentryComponent, SentryInterceptor} from './lib-sentry/src';
-import * as sentry from '@sentry/node';
-import {
-  FileStorageDataSource,
-  FileStorageDataSourceConfig,
-} from './datasources';
 import {
   RedisClientOptions,
   RedisComponent,
@@ -35,19 +41,10 @@ import {
   FileManagerService,
   FileManagerServiceConfig,
 } from './services';
-import {
-  PruneExpiredCredentialsCronJob,
-  PruneExpiredCredentialsCronJobConfig,
-} from './crontabs';
-import {CronComponent} from '@loopback/cron';
-import {CronJobComponent} from './components';
-import {FileHandlerInterceptor} from './interceptors';
-import {Options as MulterOptions} from 'multer';
 
 export {ApplicationConfig};
 
 export type FileServiceApplicationConfig = ApplicationConfig & {
-  sentryConfig: sentry.NodeOptions | undefined;
   keycloak: {
     allowedList: string;
     rejectedList: string;
@@ -87,12 +84,6 @@ export class FileServiceApplication extends BootMixin(
   }
 
   configApp(options: FileServiceApplicationConfig) {
-    // Sentry
-    this.component(SentryComponent);
-    this.bind(SentryInterceptor.CONFIG_BINDING_KEY).to({
-      ...options.sentryConfig,
-    });
-
     // Keycloak
     const splitRegex = new RegExp(/[,;\t\ ]/, 'g');
     this.bind(KEYCLOAK_LOCAL_ACL).to({
