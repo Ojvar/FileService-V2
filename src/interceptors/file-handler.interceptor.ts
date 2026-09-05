@@ -28,7 +28,7 @@ export class FileHandlerInterceptor implements Provider<Interceptor> {
     const response = invocationCtx.getSync(RestBindings.Http.RESPONSE);
     const handler = multer(this.options).any();
     return new Promise((resolve, reject) => {
-      handler(request, response, () =>
+      handler(request as any, response as any, () =>
         next().then(resolve).catch(reject),
       ) as void;
     });

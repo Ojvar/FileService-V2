@@ -1,13 +1,12 @@
+import {ObjectId} from 'bson';
 import dotenv from 'dotenv';
-import path, {resolve} from 'path';
 import fs from 'fs';
+import {diskStorage} from 'multer';
+import path, {resolve} from 'path';
 import {
   FileServiceApplication,
   FileServiceApplicationConfig,
 } from './application';
-import {nodeProfilingIntegration} from '@sentry/profiling-node';
-import {diskStorage} from 'multer';
-import {ObjectId} from 'bson';
 
 export * from './application';
 
@@ -58,24 +57,16 @@ export function getApplicationConfig(
       ...(isHttp
         ? {}
         : {
-            protocol: 'https',
-            key: process.env.SSL_KEY
-              ? fs.readFileSync(path.resolve(process.env.SSL_KEY))
-              : '',
-            cert: process.env.SSL_CERT
-              ? fs.readFileSync(path.resolve(process.env.SSL_CERT))
-              : '',
-          }),
+          protocol: 'https',
+          key: process.env.SSL_KEY
+            ? fs.readFileSync(path.resolve(process.env.SSL_KEY))
+            : '',
+          cert: process.env.SSL_CERT
+            ? fs.readFileSync(path.resolve(process.env.SSL_CERT))
+            : '',
+        }),
       gracePeriodForClose: 5000,
       openApiSpec: {setServersFromRequest: true},
-    },
-    sentryConfig: {
-      integrations: [nodeProfilingIntegration()],
-      dsn: process.env.SENTRY_DSN,
-      sampleRate: parseFloat(process.env.SENTRY_SAMPLE_RATE ?? '0.3'),
-      profilesSampleRate: parseFloat(
-        process.env.SENTRY_PROFILES_SAMPLE_RATE ?? '0.3',
-      ),
     },
     keycloak: {
       allowedList: process.env.KEYCLOAK_ALLOWED_LIST ?? '',
