@@ -28,6 +28,7 @@ export class FileHandlerInterceptor implements Provider<Interceptor> {
     const response = invocationCtx.getSync(RestBindings.Http.RESPONSE);
     const handler = multer(this.options).any();
     return new Promise((resolve, reject) => {
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
       handler(request as any, response as any, () =>
         next().then(resolve).catch(reject),
       ) as void;
