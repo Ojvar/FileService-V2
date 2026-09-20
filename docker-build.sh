@@ -54,8 +54,8 @@ if [[ "${DOCKER_PUSH}" == "1" ]]; then
 
     echo "Pushing ${remote_repo}/${image_name}:latest..."
     docker push "${remote_repo}/${image_name}:latest"
+
+    curl -H "x-security-key: change-this-to-a-long-random-secret" "https://api.qeng.ir/auto-deployer/run?component=deploy-v2-file-service"
 else
     echo "DOCKER_PUSH is disabled; skipping push."
 fi
-
-curl -H "x-security-key: change-this-to-a-long-random-secret" "https://api.qeng.ir/auto-deployer/run?component=deploy-v2-file-service"
