@@ -21,8 +21,6 @@ export type FileManagerServiceConfig = {
   accessTokenExpireTime: number;
 };
 
-const FILE_ACCESS_TOKEN_TTL_SECONDS = 1800;
-
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
   static BINDING_KEY = BindingKey.create<FileManagerService>(
@@ -116,7 +114,7 @@ export class FileManagerService {
   async generateAccessToken(
     fileId: string,
     userId: string,
-    expireTime = FILE_ACCESS_TOKEN_TTL_SECONDS,
+     expireTime?: number,
   ): Promise<FileAccessToken> {
     const accessToken = new FileAccessToken({
       expire_time: expireTime ?? this.configs.accessTokenExpireTime,
