@@ -114,7 +114,7 @@ export class FileManagerService {
   async generateAccessToken(
     fileId: string,
     userId: string,
-     expireTime?: number,
+    expireTime?: number,
   ): Promise<FileAccessToken> {
     const accessToken = new FileAccessToken({
       expire_time: expireTime ?? this.configs.accessTokenExpireTime,
