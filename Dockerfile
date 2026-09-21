@@ -1,4 +1,4 @@
-ARG NODE_BASE_IMAGE=docker.qeng.ir/node:22-slim
+ARG NODE_BASE_IMAGE=docker.qeng.ir/node:24-slim
 
 ## BUILD STAGE
 FROM $NODE_BASE_IMAGE AS stage_env_prepare
@@ -11,7 +11,7 @@ RUN yarn install --loglevel verbose
 COPY --chown=node . .
 RUN yarn build
 
-## DEPLOY STAGE
+## DEPLOY STAGEyarn
 FROM $NODE_BASE_IMAGE AS stage_deploy
 RUN apt-get update -y \
     && apt-get upgrade -y \
@@ -34,4 +34,4 @@ EXPOSE $PORT
 CMD [ "node", "." ]
 
 ## HEALTH CHECK
-HEALTHCHECK CMD curl --insecure http://localhost/ping
+# HEALTHCHECK CMD curl --insecure http://localhost/ping
