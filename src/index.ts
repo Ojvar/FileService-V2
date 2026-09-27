@@ -102,7 +102,7 @@ export function getApplicationConfig(
     },
     storageDirectory: destination,
     fileManagerServiceConfig: {
-      accessTokenExpireTime: +(process.env.ACCESS_TOKEN_EXPIRE_TIME ?? '300'),
+      accessTokenExpireTime: +(process.env.ACCESS_TOKEN_EXPIRE_TIME ?? '1800'),
     },
     multerOptions: {
       limits: {fileSize: +(process.env.MAX_FILE_SIZE ?? '2097152')},
