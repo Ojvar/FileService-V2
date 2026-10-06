@@ -21,8 +21,6 @@ export type FileManagerServiceConfig = {
   accessTokenExpireTime: number;
 };
 
-const FILE_ACCESS_TOKEN_TTL_SECONDS = 1800;
-
 @injectable({scope: BindingScope.APPLICATION})
 export class FileManagerService {
   static BINDING_KEY = BindingKey.create<FileManagerService>(
