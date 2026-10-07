@@ -132,9 +132,9 @@ export class FileManagerService {
 
   private resolveAccessTokenTtl(expireTime?: number): number {
     const configuredTtl = expireTime ?? this.configs.accessTokenExpireTime;
-    if (!Number.isFinite(configuredTtl) || configuredTtl <= 0) {
-      return FILE_ACCESS_TOKEN_TTL_SECONDS;
-    }
+    // if (!Number.isFinite(configuredTtl) || configuredTtl <= 0) {
+    //   return FILE_ACCESS_TOKEN_TTL_SECONDS;
+    // }
     return Math.floor(configuredTtl);
   }
 
