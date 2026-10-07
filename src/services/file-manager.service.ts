@@ -116,19 +116,26 @@ export class FileManagerService {
     userId: string,
     expireTime?: number,
   ): Promise<FileAccessToken> {
+    const ttlSeconds = this.resolveAccessTokenTtl(expireTime);
     const accessToken = new FileAccessToken({
-      expire_time: expireTime ?? this.configs.accessTokenExpireTime,
+      expire_time: ttlSeconds,
       file_id: fileId,
       user_id: userId,
     });
-
     await this.redisService.client.SET(
       accessToken.redisKey,
       accessToken.toJson(),
-      {EX: accessToken.expire_time},
+      {EX: ttlSeconds},
     );
-
     return accessToken;
+  }
+
+  private resolveAccessTokenTtl(expireTime?: number): number {
+    const configuredTtl = expireTime ?? this.configs.accessTokenExpireTime;
+    if (!Number.isFinite(configuredTtl) || configuredTtl <= 0) {
+      return FILE_ACCESS_TOKEN_TTL_SECONDS;
+    }
+    return Math.floor(configuredTtl);
   }
 
   async checkAccessToken(fileId: string, token: string): Promise<boolean> {
